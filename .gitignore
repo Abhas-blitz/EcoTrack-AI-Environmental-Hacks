@@ -4,3 +4,7 @@ dist/
 *.local
 .aws-sam/
 .vite/
+__pycache__/
+*.pyc
+.venv/
+*.log

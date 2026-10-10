@@ -373,6 +373,30 @@
             </div>
           </div>
 
+          <section class="card ai-assistant-card" aria-labelledby="ai-assistant-title">
+            <div class="ai-assistant-header">
+              <div>
+                <h2 id="ai-assistant-title">🌱 Ask EcoTrack AI</h2>
+                <p class="section-desc">Local recycling and waste-disposal guidance from your Ollama model.</p>
+              </div>
+              <span id="ai-assistant-status" class="ai-status-pill">● Local assistant</span>
+            </div>
+
+            <div id="ai-chat-log" class="ai-chat-log" role="log" aria-live="polite" aria-label="EcoTrack AI conversation">
+              <article class="ai-message ai-message-assistant">
+                <span class="ai-message-label">EcoTrack AI</span>
+                <p>Ask about reducing waste, sorting recyclables, or preparing for a cleanup after heavy rain.</p>
+              </article>
+            </div>
+
+            <form id="ai-assistant-form" class="ai-assistant-form">
+              <label class="sr-only" for="ai-question">Your question for EcoTrack AI</label>
+              <textarea id="ai-question" rows="2" maxlength="1000" required placeholder="For example: How should I handle wet cardboard after flooding?"></textarea>
+              <button id="ai-send-btn" class="cmd-analyze-btn" type="submit">Ask local AI</button>
+            </form>
+            <p class="ai-assistant-note">Runs only on <code>127.0.0.1</code>; no cloud or paid AWS service is used.</p>
+          </section>
+
           <!-- ══════════════════════════════════════════════════════════
                PAGE 2: SAFETY PROTOCOLS & ACTION HUB
                ══════════════════════════════════════════════════════════ -->

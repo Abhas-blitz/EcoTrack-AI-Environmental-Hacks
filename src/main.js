@@ -129,12 +129,20 @@ const btnCopyCmds = $$('.btn-copy-cmd');
 // Toast Container
 const toastContainer = $('#toast-container');
 
+// Local EcoTrack AI Assistant
+const aiAssistantForm = $('#ai-assistant-form');
+const aiQuestionInput = $('#ai-question');
+const aiChatLog = $('#ai-chat-log');
+const aiSendBtn = $('#ai-send-btn');
+const aiAssistantStatus = $('#ai-assistant-status');
+
 // ── State Variables ────────────────────────────────────────────────────
 
 const STORAGE_KEY_HISTORY = 'ecotrack_history_v3';
 const STORAGE_KEY_THEME = 'ecotrack_theme';
 const STORAGE_KEY_GOBAG = 'ecotrack_gobag';
 const SAM_ENDPOINT = 'http://127.0.0.1:3000/assess';
+const AI_ASSISTANT_ENDPOINT = 'http://127.0.0.1:8000/ask';
 
 let currentAssessment = null;
 let completedActionIds = new Set();
@@ -246,6 +254,80 @@ function showToast(message, icon = 'ℹ️') {
   toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
   toastContainer.appendChild(toast);
   setTimeout(() => toast.remove(), 3200);
+}
+
+// ── Local Strands / Ollama Assistant ───────────────────────────────────
+
+function appendAssistantMessage(role, text) {
+  const message = document.createElement('article');
+  message.className = `ai-message ai-message-${role}`;
+
+  const label = document.createElement('span');
+  label.className = 'ai-message-label';
+  label.textContent = role === 'user' ? 'You' : 'EcoTrack AI';
+
+  const body = document.createElement('p');
+  body.textContent = text;
+
+  message.append(label, body);
+  aiChatLog.appendChild(message);
+  aiChatLog.scrollTop = aiChatLog.scrollHeight;
+  return message;
+}
+
+function setAssistantBusy(isBusy) {
+  aiQuestionInput.disabled = isBusy;
+  aiSendBtn.disabled = isBusy;
+  aiSendBtn.textContent = isBusy ? 'Thinking locally…' : 'Ask local AI';
+  aiAssistantStatus.textContent = isBusy ? '● Ollama is thinking' : '● Local assistant';
+  aiAssistantStatus.classList.toggle('is-busy', isBusy);
+}
+
+function getAssistantContext() {
+  const city = citySelect.options[citySelect.selectedIndex]?.text.split('(')[0].trim() || 'the selected city';
+  const conditions = `City: ${city}. Temperature: ${tempInput.value}°C; humidity: ${humInput.value}%; rainfall: ${rainInput.value}mm/24h; wind: ${windInput.value} km/h.`;
+  const assessment = currentAssessment
+    ? ` Current risk assessment: ${currentAssessment.overall} (${currentAssessment.overallScore}/4).`
+    : '';
+  return `${conditions}${assessment}`;
+}
+
+if (aiAssistantForm) {
+  aiAssistantForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const question = aiQuestionInput.value.trim();
+    if (!question) return;
+
+    appendAssistantMessage('user', question);
+    aiQuestionInput.value = '';
+    setAssistantBusy(true);
+
+    try {
+      const response = await fetch(AI_ASSISTANT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: `${question}\n\nDashboard context (use only when relevant): ${getAssistantContext()}` }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Local assistant returned HTTP ${response.status}`);
+      }
+
+      const payload = await response.json();
+      if (!payload.answer || typeof payload.answer !== 'string') {
+        throw new Error('Local assistant returned no answer');
+      }
+
+      appendAssistantMessage('assistant', payload.answer);
+    } catch (error) {
+      console.error('Local assistant request failed:', error);
+      appendAssistantMessage('assistant', 'I could not reach the local assistant. Start Ollama, then run `python -m uvicorn backend:app --reload --port 8000` and try again.');
+      showToast('Local AI assistant is unavailable.', '⚠️');
+    } finally {
+      setAssistantBusy(false);
+      aiQuestionInput.focus();
+    }
+  });
 }
 
 // ── Dual Slider ⇄ Input Synchronizer ───────────────────────────────────
