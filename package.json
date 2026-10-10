@@ -2,6 +2,7 @@
   "name": "ecotrack-ai",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "description": "EcoTrack AI — Neighbourhood Heat & Rain Readiness. Environmental Hacks 2026.",
   "scripts": {
     "dev": "vite",
