@@ -1,10 +1,13 @@
 /**
- * EcoTrack AI — Risk Engine
+ * EcoTrack AI — Advanced Risk & Meteorology Engine
  * Transparent, rule-based heat and rain risk assessment.
  *
- * Heat risk is derived from an approximated Heat Index (Rothfusz regression / Steadman).
- * Rain risk is derived from expected rainfall amount, amplified by wind shear factor.
- * Overall readiness level = the worse of the two individual risks.
+ * Includes:
+ * 1. Heat Index via Rothfusz regression (Steadman formulation)
+ * 2. Wet-Bulb Temperature (Tw) via Stull (2011) formulation
+ * 3. Wind shear precipitation amplification
+ * 4. Multi-domain categorized action protocols
+ * 5. Emergency Go-Bag checklist definitions
  */
 
 // ── Risk level thresholds ──────────────────────────────────────────────
@@ -25,16 +28,14 @@ export const RAIN_THRESHOLDS = [
 
 export const LEVEL_ORDER = ['Low', 'Moderate', 'High', 'Severe'];
 
-// ── Simplified Heat Index approximation (Steadman / Rothfusz) ─────────
+// ── Apparent Heat Index approximation (Steadman / Rothfusz) ───────────
 
 export function approximateHeatIndex(tempC, humidityPct) {
-  // Only meaningful when temp >= 27 °C; below that, apparent temp ≈ actual
   if (tempC < 27) return tempC;
 
   const T = tempC;
   const H = humidityPct;
 
-  // Rothfusz regression (converted to °C)
   let HI =
     -8.7847 +
     1.6114 * T +
@@ -46,19 +47,40 @@ export function approximateHeatIndex(tempC, humidityPct) {
     0.0063 * T * T * (H * 0.01) * (H * 0.01) -
     0.0003 * T * T * T;
 
-  // Clamp so it is never below the actual temperature
   return Math.max(HI, tempC);
 }
 
-// ── Effective rainfall (amplified by wind) ─────────────────────────────
+// ── Wet-Bulb Temperature (Tw) via Stull (2011) ─────────────────────────
+
+export function calculateWetBulb(tempC, humidityPct) {
+  const T = tempC;
+  const H = humidityPct;
+
+  const Tw =
+    T * Math.atan(0.151977 * Math.sqrt(H + 8.313659)) +
+    Math.atan(T + H) -
+    Math.atan(H - 1.676331) +
+    0.00391838 * Math.pow(H, 1.5) * Math.atan(0.023101 * H) -
+    4.686035;
+
+  return Math.round(Tw * 10) / 10;
+}
+
+export function classifyWetBulb(wetBulbC) {
+  if (wetBulbC < 26) return { status: 'Normal', note: 'Standard thermal dissipation' };
+  if (wetBulbC < 29) return { status: 'Elevated Stress', note: 'Increased cardiac strain during exertion' };
+  if (wetBulbC < 32) return { status: 'High Danger', note: 'Impaired sweat evaporation; short work cycles' };
+  return { status: 'Critical Physiological Limit', note: 'Extreme hazard: core temperature escalation within hours' };
+}
+
+// ── Effective Rainfall (wind shear factor) ─────────────────────────────
 
 export function effectiveRainfall(rainfallMm, windKmh) {
-  // Wind above 20 km/h pushes runoff into drains faster and causes wind-driven ingress
   const windFactor = 1 + Math.min(Math.max(windKmh - 10, 0), 100) / 180;
   return rainfallMm * windFactor;
 }
 
-// ── Classify a value against thresholds ────────────────────────────────
+// ── Classification Helpers ─────────────────────────────────────────────
 
 export function classify(value, thresholds) {
   for (const t of thresholds) {
@@ -71,54 +93,66 @@ export function worstLevel(a, b) {
   return LEVEL_ORDER.indexOf(a) >= LEVEL_ORDER.indexOf(b) ? a : b;
 }
 
-// ── Action catalogue ───────────────────────────────────────────────────
+// ── Multi-domain Categorized Action Catalogue ──────────────────────────
 
 export const ACTIONS = {
   heat: {
     Low: [
-      { id: 'h-low-1', icon: '💧', title: 'Maintain routine hydration', body: 'Drink at least 2–2.5L water today even without intense thirst.', tag: 'Hydration', priority: 'Low' },
-      { id: 'h-low-2', icon: '🧴', title: 'Sun protection', body: 'Apply SPF 30+ sunscreen and wear UV-rated sunglasses if out in peak sunlight.', tag: 'Outdoor', priority: 'Low' },
-      { id: 'h-low-3', icon: '🧢', title: 'Breathable attire', body: 'Choose lightweight, light-colored, loose cotton clothing.', tag: 'Attire', priority: 'Low' },
+      { id: 'h-low-1', category: 'Health', icon: '💧', title: 'Maintain baseline hydration', body: 'Drink 2.5–3L water today; encourage hydration among outdoor workers and students.', tag: 'Hydration', priority: 'Low' },
+      { id: 'h-low-2', category: 'Household', icon: '🧢', title: 'Sunshade and breathable clothing', body: 'Use broad-brim hats, UV umbrellas, and light-colored cotton attire.', tag: 'Attire', priority: 'Low' },
+      { id: 'h-low-3', category: 'Community', icon: '🌳', title: 'Utilize neighborhood shade corridors', body: 'Map shaded pedestrian walkways and plant trees along building setbacks.', tag: 'Outdoor', priority: 'Low' },
     ],
     Moderate: [
-      { id: 'h-mod-1', icon: '💧', title: 'Pre-hydrate before stepping out', body: 'Keep an electrolyte/ORAL hydration pack handy; target 3L fluids.', tag: 'Hydration', priority: 'Medium' },
-      { id: 'h-mod-2', icon: '🏠', title: 'Restrict peak-sun activities', body: 'Avoid heavy outdoor labor or jogging between 11:30 AM and 3:30 PM.', tag: 'Activity', priority: 'Medium' },
-      { id: 'h-mod-3', icon: '👶', title: 'Check vulnerable family & pets', body: 'Ensure elderly members, toddlers, and pets remain in well-ventilated shade.', tag: 'Community', priority: 'Medium' },
+      { id: 'h-mod-1', category: 'Health', icon: '💧', title: 'Oral Rehydration & Electrolyte Packs', body: 'Stock ORS packets and coconut water; keep drinking at 20-minute intervals outdoors.', tag: 'Hydration', priority: 'Medium' },
+      { id: 'h-mod-2', category: 'Household', icon: '🏠', title: 'Limit peak-solar exposure (11:30–15:30)', body: 'Keep westward curtains closed; ventilate home using cross-breeze during evening.', tag: 'Cooling', priority: 'Medium' },
+      { id: 'h-mod-3', category: 'Community', icon: '👶', title: 'Monitor vulnerable seniors & pets', body: 'Check on elderly building residents living alone; ensure outdoor pets have fresh water.', tag: 'Care', priority: 'Medium' },
     ],
     High: [
-      { id: 'h-high-1', icon: '🚫', title: 'Postpone outdoor strenuous activity', body: 'Reschedule all field tasks to early morning (before 9 AM) or post sunset.', tag: 'Safety', priority: 'High' },
-      { id: 'h-high-2', icon: '🧊', title: 'Active cooling protocol', body: 'Use damp washcloths, cold misting, or cold showers if core temperature rises.', tag: 'Health', priority: 'High' },
-      { id: 'h-high-3', icon: '📞', title: 'Check isolated neighbours', body: 'Contact elderly neighbours living alone to confirm fan/cooler operation.', tag: 'Community', priority: 'High' },
+      { id: 'h-high-1', category: 'Health', icon: '🚫', title: 'Mandatory halt on heavy midday labor', body: 'Reschedule construction, deliveries, and outdoor physical drills to cooler dawn hours.', tag: 'Safety', priority: 'High' },
+      { id: 'h-high-2', category: 'Household', icon: '🧊', title: 'Active cooling stations', body: 'Keep ice packs, cool towels, and emergency pedestal fans powered in a cool designated room.', tag: 'Refuge', priority: 'High' },
+      { id: 'h-high-3', category: 'Community', icon: '📞', title: 'Establish neighborhood check-in ring', body: 'Coordinate building WhatsApp tree to verify that every floor has functional fans or cooling.', tag: 'Community', priority: 'High' },
     ],
     Severe: [
-      { id: 'h-sev-1', icon: '🆘', title: 'Heat emergency protocol active', body: 'Extreme heat risk. Immediately rest in air-conditioned or chilled refuge rooms.', tag: 'Emergency', priority: 'Critical' },
-      { id: 'h-sev-2', icon: '🚫', title: 'Zero direct sun exposure', body: 'Cancel all outdoor deliveries, construction, and pedestrian transit.', tag: 'Mandate', priority: 'Critical' },
-      { id: 'h-sev-3', icon: '🏥', title: 'Identify nearest medical cooler facility', body: 'Watch for disorientation, cessation of sweating, or vomiting (heatstroke). Call 112/108.', tag: 'Medical', priority: 'Critical' },
+      { id: 'h-sev-1', category: 'Health', icon: '🆘', title: 'Heat emergency protocol: Cool rooms only', body: 'Extreme ambient hazard. Relocate vulnerable residents immediately to cooled community centres.', tag: 'Emergency', priority: 'Critical' },
+      { id: 'h-sev-2', category: 'Household', icon: '🚫', title: 'Zero direct sun exposure mandate', body: 'Cancel all outdoor transit; keep doors and thermal blinds tightly sealed against dry hot wind.', tag: 'Lockdown', priority: 'Critical' },
+      { id: 'h-sev-3', category: 'Community', icon: '🏥', title: 'Identify nearest heat-treatment clinic', body: 'Watch for confusion, hot dry skin, or rapid pulse. Immediately call 112 / 108 for ambulance.', tag: 'Medical', priority: 'Critical' },
     ],
   },
   rain: {
     Low: [
-      { id: 'r-low-1', icon: '☂️', title: 'Carry waterproof gear', body: 'Keep a compact umbrella or rain poncho accessible when traveling.', tag: 'Commute', priority: 'Low' },
-      { id: 'r-low-2', icon: '🚗', title: 'Wet pavement caution', body: 'Increase following distance while driving; tires take 40% longer to brake on damp asphalt.', tag: 'Driving', priority: 'Low' },
-      { id: 'r-low-3', icon: '🏠', title: 'Close open balconies & windows', body: 'Inspect window sills and bring drying clothes inside before leaving.', tag: 'Home', priority: 'Low' },
+      { id: 'r-low-1', category: 'Household', icon: '☂️', title: 'Inspect rooftop gutters & drains', body: 'Check that terrace drain outlets are free of fallen leaves or dust blockages.', tag: 'Drainage', priority: 'Low' },
+      { id: 'r-low-2', category: 'Infrastructure', icon: '🚗', title: 'Safe driving following distance', body: 'Double stopping distance on damp asphalt; avoid sudden braking near road puddles.', tag: 'Commute', priority: 'Low' },
+      { id: 'r-low-3', category: 'Community', icon: '🏠', title: 'Secure loose balcony items', body: 'Bring in lightweight flower pots and drying racks that could be blown off balconies.', tag: 'Assets', priority: 'Low' },
     ],
     Moderate: [
-      { id: 'r-mod-1', icon: '🕳️', title: 'Inspect local stormwater grates', body: 'Clear leaves, plastic debris, and silt from driveway drains and neighbourhood culverts.', tag: 'Drainage', priority: 'Medium' },
-      { id: 'r-mod-2', icon: '🚗', title: 'Reposition low-lying vehicles', body: 'Relocate two-wheelers and cars out of basement ramps or depression parking.', tag: 'Assets', priority: 'Medium' },
-      { id: 'r-mod-3', icon: '🔋', title: 'Charge backup power sources', body: 'Charge portable power banks, torches, and radios in anticipation of feeder trips.', tag: 'Preparedness', priority: 'Medium' },
+      { id: 'r-mod-1', category: 'Infrastructure', icon: '🕳️', title: 'Clear storm drain grates & culverts', body: 'Check municipal stormwater inlets near your gate; report standing water to local ward office.', tag: 'Drainage', priority: 'Medium' },
+      { id: 'r-mod-2', category: 'Household', icon: '🚗', title: 'Relocate basement parked vehicles', body: 'Move cars and two-wheelers up from underground ramps or flood-susceptible basement floors.', tag: 'Vehicles', priority: 'Medium' },
+      { id: 'r-mod-3', category: 'Health', icon: '🔋', title: 'Charge backup power & battery packs', body: 'Full charge on phones, inverters, power banks, and flashlights for feeder trip events.', tag: 'Preparedness', priority: 'Medium' },
     ],
     High: [
-      { id: 'r-high-1', icon: '⚠️', title: 'Avoid waterlogged underpasses', body: 'Do not cross flooded subway roads or stagnant water (risk of hidden manholes & electrocution).', tag: 'Danger', priority: 'High' },
-      { id: 'r-high-2', icon: '📦', title: 'Elevate ground-floor valuables', body: 'Move electronic appliances, documents, and surge protectors at least 1 meter above floor.', tag: 'Protection', priority: 'High' },
-      { id: 'r-high-3', icon: '📻', title: 'Monitor disaster management alerts', body: 'Tune to local municipal radio or state disaster management authority (SDMA) bulletins.', tag: 'Updates', priority: 'High' },
+      { id: 'r-high-1', category: 'Infrastructure', icon: '⚠️', title: 'Avoid flooded underpasses & subways', body: 'Never drive through standing water of unknown depth; submerged manholes and electrical leaks present severe danger.', tag: 'Hazard', priority: 'High' },
+      { id: 'r-high-2', category: 'Household', icon: '📦', title: 'Elevate ground-floor valuables & wiring', body: 'Raise computers, appliances, and legal documents at least 1.2m above finished floor.', tag: 'Protection', priority: 'High' },
+      { id: 'r-high-3', category: 'Community', icon: '📻', title: 'Tune into municipal disaster radio', body: 'Monitor SDMA and IMD radar feeds; establish sandbag barriers at driveway gates.', tag: 'Advisory', priority: 'High' },
     ],
     Severe: [
-      { id: 'r-sev-1', icon: '🆘', title: 'Flash flood alert: move to upper floors', body: 'Severe runoff imminent. Relocate essential medication, infants, and elderly to higher floors.', tag: 'Emergency', priority: 'Critical' },
-      { id: 'r-sev-2', icon: '⚡', title: 'Isolate main circuit breaker if submerged', body: 'Do not touch switches while standing in water. Report sparking transformers to 1912 immediately.', tag: 'Electrical', priority: 'Critical' },
-      { id: 'r-sev-3', icon: '📞', title: 'Keep NDRF & emergency lines ready', body: 'National Emergency: 112 | NDRF Helpline: 1078 | Disaster Control: 1070.', tag: 'Rescue', priority: 'Critical' },
+      { id: 'r-sev-1', category: 'Infrastructure', icon: '🆘', title: 'Flash flood alert: Stage to upper floors', body: 'Torrential runoff occurring. Move infants, elders, and pets to floor 2 or above immediately.', tag: 'Evacuation', priority: 'Critical' },
+      { id: 'r-sev-2', category: 'Household', icon: '⚡', title: 'Isolate main electrical circuit breakers', body: 'Switch off main power if water approaches wall outlets. Do not touch electrical boxes while in standing water.', tag: 'Electrical', priority: 'Critical' },
+      { id: 'r-sev-3', category: 'Community', icon: '📞', title: 'Contact NDRF & Emergency Disaster Control', body: 'National Emergency: 112 | NDRF: 1078 | District Flood Control: 1077 | Power Grid Fault: 1912.', tag: 'Rescue', priority: 'Critical' },
     ],
   },
 };
+
+// Emergency Go-Bag Checklist
+export const GO_BAG_ITEMS = [
+  { id: 'gobag-1', icon: '💧', title: 'Potable Drinking Water (3L per person in sealed bottles)', category: 'Essential' },
+  { id: 'gobag-2', icon: '🥫', title: 'Non-perishable energy bars / dry rations (48-hour supply)', category: 'Essential' },
+  { id: 'gobag-3', icon: '💊', title: 'Essential prescription medicines + First Aid kit & ORS', category: 'Medical' },
+  { id: 'gobag-4', icon: '🔦', title: 'High-lumen waterproof LED torch + extra batteries', category: 'Utility' },
+  { id: 'gobag-5', icon: '🔋', title: '20,000mAh Power Bank with multiple charging cables', category: 'Utility' },
+  { id: 'gobag-6', icon: '📄', title: 'Aadhaar / ID cards, insurance policies in waterproof zip pouch', category: 'Documents' },
+  { id: 'gobag-7', icon: '📻', title: 'Battery-powered AM/FM emergency radio', category: 'Communications' },
+  { id: 'gobag-8', icon: '📢', title: 'High-decibel emergency whistle for rescue signaling', category: 'Rescue' },
+];
 
 export function getActions(heatLevel, rainLevel) {
   const heatScore = LEVEL_ORDER.indexOf(heatLevel);
@@ -130,16 +164,15 @@ export function getActions(heatLevel, rainLevel) {
     return ACTIONS.rain[rainLevel];
   }
 
-  // Equal risk levels: blend actions for comprehensive coverage
   return [
     ACTIONS.heat[heatLevel][0],
     ACTIONS.rain[rainLevel][0],
     ACTIONS.heat[heatLevel][1] || ACTIONS.rain[rainLevel][1],
     ACTIONS.rain[rainLevel][2] || ACTIONS.heat[heatLevel][2],
-  ].filter(Boolean).slice(0, 4);
+  ].filter(Boolean);
 }
 
-// ── Main assessment function ───────────────────────────────────────────
+// ── Main Assessment Function ───────────────────────────────────────────
 
 export function assessRisk({ temperature, humidity, rainfall, wind }) {
   const temp = Number(temperature);
@@ -148,7 +181,9 @@ export function assessRisk({ temperature, humidity, rainfall, wind }) {
   const windSpeed = Number(wind);
 
   const heatIndex = approximateHeatIndex(temp, hum);
-  const effRain   = effectiveRainfall(rainAmount, windSpeed);
+  const wetBulb = calculateWetBulb(temp, hum);
+  const wetBulbInfo = classifyWetBulb(wetBulb);
+  const effRain = effectiveRainfall(rainAmount, windSpeed);
 
   const heatClass = classify(heatIndex, HEAT_THRESHOLDS);
   const rainClass = classify(effRain, RAIN_THRESHOLDS);
@@ -164,6 +199,9 @@ export function assessRisk({ temperature, humidity, rainfall, wind }) {
       level: heatClass.level,
       score: heatClass.score,
       heatIndex: Math.round(heatIndex * 10) / 10,
+      wetBulb,
+      wetBulbStatus: wetBulbInfo.status,
+      wetBulbNote: wetBulbInfo.note,
       rawTemp: temp,
       rawHumidity: hum,
       label: heatClass.label,
@@ -178,15 +216,16 @@ export function assessRisk({ temperature, humidity, rainfall, wind }) {
     },
     actions,
     explanation: [
-      `Heat Metric: Temperature ${temp}°C + Humidity ${hum}% yields an Apparent Heat Index of ${Math.round(heatIndex * 10) / 10}°C (${heatClass.level} Risk).`,
-      `Rain Metric: Rainfall ${rainAmount}mm amplified by ${windSpeed} km/h wind shear produces Effective Precipitation of ${Math.round(effRain * 10) / 10}mm (${rainClass.level} Risk).`,
-      `Readiness Verdict: Dominated by ${overall} classification (${Math.max(heatClass.score, rainClass.score)}/4 severity score).`
+      `Thermal Metric: Ambient ${temp}°C + Humidity ${hum}% generates an Apparent Heat Index of ${Math.round(heatIndex * 10) / 10}°C (${heatClass.level} Risk).`,
+      `Wet-Bulb Stress: Calculated Wet-Bulb temperature is ${wetBulb}°C (${wetBulbInfo.status}).`,
+      `Hydrological Runoff: Precipitation ${rainAmount}mm adjusted by ${windSpeed} km/h wind shear produces Effective Runoff Volume of ${Math.round(effRain * 10) / 10}mm (${rainClass.level} Risk).`,
+      `Readiness Verdict: Overall classification is governed by ${overall} hazard (${overallScore}/4 severity scale).`
     ],
     timestamp: new Date().toISOString(),
   };
 }
 
-// ── Expanded City Catalogue & Coordinates (for Live Weather API) ─────
+// ── Expanded City Catalog with Coordinates ─────────────────────────────
 
 export const CITY_CATALOG = [
   { id: 'delhi', name: 'Delhi NCR', state: 'Delhi', lat: 28.6139, lon: 77.2090, defaults: { temperature: 41.5, humidity: 38, rainfall: 4, wind: 16 } },

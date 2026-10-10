@@ -3,432 +3,837 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EcoTrack AI — Neighbourhood Heat &amp; Rain Readiness</title>
+    <title>EcoTrack AI — Neighbourhood Heat &amp; Rain Readiness Workstation</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div id="app">
-      <!-- Announcement & Context Bar -->
-      <div class="top-announcement">
-        <div class="announcement-content">
-          <span class="badge-pill hackathon-pill">🌱 Environmental Hacks 2026 · Heat &amp; Water Track</span>
-          <span class="badge-pill aws-pill" id="aws-status-chip">
-            <span class="status-dot pulse-sam"></span> AWS SAM Local Serverless Ready
-          </span>
-        </div>
-        <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle theme">
-          <span class="theme-icon">🌙</span>
-          <span class="theme-text">Dark</span>
-        </button>
-      </div>
-
-      <!-- Header -->
-      <header class="header">
-        <div class="header-brand">
+    <div id="desktop-app" class="desktop-layout">
+      <!-- ── Left Sidebar Navigation ─────────────────────────────────── -->
+      <aside class="sidebar">
+        <div class="sidebar-brand">
           <div class="brand-logo-wrap">
-            <span class="header-icon">🌍</span>
-            <div class="status-indicator-ring"></div>
+            <span class="brand-icon">🌍</span>
+            <div class="status-indicator-ring" title="System Operational"></div>
           </div>
-          <div class="brand-titles">
-            <h1>EcoTrack <span class="highlight">AI</span></h1>
-            <p class="header-tagline">Neighbourhood Heat &amp; Heavy-Rain Readiness System</p>
-          </div>
-        </div>
-
-        <!-- Backend Selector / Status Bar -->
-        <div class="backend-banner">
-          <div class="backend-info">
-            <span class="backend-icon">⚙️</span>
-            <div>
-              <strong>Execution Engine:</strong>
-              <span id="current-engine-label" class="engine-tag">Local Client Risk Engine</span>
-            </div>
-          </div>
-          <div class="backend-controls">
-            <label class="switch-wrap" title="Toggle between local client logic and local AWS SAM API">
-              <input type="checkbox" id="backend-toggle" />
-              <span class="slider-toggle"></span>
-            </label>
-            <span class="switch-label">Use AWS SAM API (Local)</span>
-            <button id="ping-sam-btn" class="btn-micro" title="Test AWS SAM Local API connection">Ping SAM</button>
+          <div class="brand-info">
+            <div class="brand-title">EcoTrack <span class="highlight">AI</span></div>
+            <div class="brand-subtitle">Environmental Readiness</div>
           </div>
         </div>
-      </header>
 
-      <!-- Main Layout -->
-      <main class="main">
-        <!-- Input Section -->
-        <section class="card input-card">
-          <div class="card-header-flex">
-            <div>
-              <h2>📍 Local Meteorological Inputs</h2>
-              <p class="section-desc">Select a municipality, fetch live satellite weather, or enter local sensors manually.</p>
-            </div>
-            <div class="quick-fetch-actions">
-              <button id="gps-btn" class="btn-secondary btn-iconic" title="Detect location from browser GPS">
-                <span>🎯</span> My GPS Location
-              </button>
-              <button id="fetch-live-btn" class="btn-secondary btn-iconic" title="Fetch live real-time conditions via Open-Meteo">
-                <span id="live-weather-spinner">⚡</span> Fetch Live Weather
-              </button>
-            </div>
-          </div>
+        <div class="sidebar-track-badge">
+          <span class="track-dot"></span>
+          <span>Env Hacks 2026 · Heat &amp; Water</span>
+        </div>
 
-          <!-- City Selector & Live Status -->
-          <div class="form-row-city">
-            <div class="form-group flex-2">
-              <label for="city">Monitored Municipality / Neighbourhood</label>
-              <div class="select-wrapper">
-                <select id="city">
-                  <option value="delhi">Delhi NCR (National Capital Region)</option>
-                  <option value="mumbai">Mumbai (Coastal Konkan / Island City)</option>
-                  <option value="chennai">Chennai (Coromandel Coast)</option>
-                  <option value="bengaluru">Bengaluru (Deccan Plateau)</option>
-                  <option value="kolkata">Kolkata (Gangetic Delta)</option>
-                  <option value="hyderabad">Hyderabad (Telangana Plateau)</option>
-                  <option value="ahmedabad">Ahmedabad (Western Semi-Arid)</option>
-                  <option value="pune">Pune (Western Ghats Rainshadow)</option>
-                  <option value="kochi">Kochi (Malabar Coast)</option>
-                  <option value="jaipur">Jaipur (Thar Fringe)</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group flex-1" id="weather-timestamp-wrap">
-              <label>Data Source Status</label>
-              <div id="data-source-status" class="status-box">
-                <span class="status-dot dot-idle"></span>
-                <span id="data-source-text">Preset / Manual</span>
-              </div>
-            </div>
-          </div>
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+          <button class="nav-item active" data-page="page-overview">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Cockpit &amp; Overview</span>
+            <span class="nav-badge" id="nav-overall-badge">Low</span>
+          </button>
+          <button class="nav-item" data-page="page-protocols">
+            <span class="nav-icon">🛡️</span>
+            <span class="nav-label">Safety Protocols</span>
+            <span class="nav-badge-count" id="nav-actions-count">3</span>
+          </button>
+          <button class="nav-item" data-page="page-meteorology">
+            <span class="nav-icon">🔮</span>
+            <span class="nav-label">Meteorology Lab</span>
+          </button>
+          <button class="nav-item" data-page="page-emergency">
+            <span class="nav-icon">🚨</span>
+            <span class="nav-label">Emergency Helplines</span>
+          </button>
+          <button class="nav-item" data-page="page-history">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">History &amp; Analytics</span>
+            <span class="nav-badge-count" id="nav-history-count">0</span>
+          </button>
+          <button class="nav-item" data-page="page-aws">
+            <span class="nav-icon">☁️</span>
+            <span class="nav-label">AWS SAM Console</span>
+            <span class="nav-status-dot pulse-sam" id="sidebar-sam-dot"></span>
+          </button>
+        </nav>
 
-          <!-- Quick Scenario Presets -->
-          <div class="preset-strip">
-            <span class="preset-label">Test Scenarios:</span>
-            <button class="preset-btn" data-preset="severe-heat">☀️ 43°C Heatwave</button>
-            <button class="preset-btn" data-preset="monsoon-flood">🌧️ 85mm Cloudburst</button>
-            <button class="preset-btn" data-preset="cyclone-squall">🌀 Squall (Rain+Wind)</button>
-            <button class="preset-btn" data-preset="mild-spring">⛅ 28°C Low Risk</button>
-          </div>
-
-          <!-- Dual Slider + Numeric Input Grid -->
-          <div class="inputs-grid">
-            <!-- Temperature -->
-            <div class="metric-input-card">
-              <div class="metric-input-header">
-                <label for="temperature">
-                  <span class="metric-icon">🌡️</span> Temperature
-                </label>
-                <div class="input-val-display">
-                  <input type="number" id="temperature" min="10" max="60" step="0.5" value="38" />
-                  <span class="unit">°C</span>
-                </div>
-              </div>
-              <input type="range" id="temp-slider" min="15" max="55" step="0.5" value="38" class="metric-slider" />
-              <div class="slider-ticks">
-                <span>15°C Mild</span>
-                <span>35°C Hot</span>
-                <span>50°C Severe</span>
-              </div>
+        <!-- Sidebar Footer Controls -->
+        <div class="sidebar-footer">
+          <!-- Backend Mode Pill -->
+          <div class="sidebar-backend-card">
+            <div class="backend-card-header">
+              <span class="backend-mini-title">ENGINE MODE</span>
+              <span id="sidebar-engine-pill" class="engine-mini-pill">Client</span>
             </div>
-
-            <!-- Humidity -->
-            <div class="metric-input-card">
-              <div class="metric-input-header">
-                <label for="humidity">
-                  <span class="metric-icon">💧</span> Relative Humidity
-                </label>
-                <div class="input-val-display">
-                  <input type="number" id="humidity" min="5" max="100" step="1" value="70" />
-                  <span class="unit">%</span>
-                </div>
-              </div>
-              <input type="range" id="hum-slider" min="10" max="100" step="1" value="70" class="metric-slider" />
-              <div class="slider-ticks">
-                <span>10% Dry</span>
-                <span>50% Moderate</span>
-                <span>95% Humid</span>
-              </div>
-            </div>
-
-            <!-- Expected Rainfall -->
-            <div class="metric-input-card">
-              <div class="metric-input-header">
-                <label for="rainfall">
-                  <span class="metric-icon">🌧️</span> Expected Rainfall (24h)
-                </label>
-                <div class="input-val-display">
-                  <input type="number" id="rainfall" min="0" max="300" step="1" value="45" />
-                  <span class="unit">mm</span>
-                </div>
-              </div>
-              <input type="range" id="rain-slider" min="0" max="200" step="1" value="45" class="metric-slider" />
-              <div class="slider-ticks">
-                <span>0mm Dry</span>
-                <span>65mm Moderate</span>
-                <span>150mm+ Extreme</span>
-              </div>
-            </div>
-
-            <!-- Wind Speed -->
-            <div class="metric-input-card">
-              <div class="metric-input-header">
-                <label for="wind">
-                  <span class="metric-icon">💨</span> Wind Speed / Gust
-                </label>
-                <div class="input-val-display">
-                  <input type="number" id="wind" min="0" max="180" step="1" value="28" />
-                  <span class="unit">km/h</span>
-                </div>
-              </div>
-              <input type="range" id="wind-slider" min="0" max="120" step="1" value="28" class="metric-slider" />
-              <div class="slider-ticks">
-                <span>0 Calm</span>
-                <span>35 Breeze</span>
-                <span>90+ Gale</span>
-              </div>
+            <div class="backend-switch-row">
+              <label class="switch-wrap" title="Toggle between local client engine and AWS SAM local API">
+                <input type="checkbox" id="backend-toggle" />
+                <span class="slider-toggle"></span>
+              </label>
+              <span class="backend-switch-label">AWS SAM (:3000)</span>
             </div>
           </div>
 
-          <!-- Analyze Action Button -->
-          <div class="action-btn-row">
-            <button id="check-btn" class="btn-primary btn-large">
-              <span class="btn-sparkle">⚡</span> Analyze Neighbourhood Risk
+          <!-- Theme & Attribution -->
+          <div class="sidebar-meta-row">
+            <button id="theme-toggle" class="theme-btn" title="Toggle Light / Dark Mode">
+              <span class="theme-icon">🌙</span>
+              <span class="theme-text">Dark Mode</span>
             </button>
           </div>
-        </section>
+          <div class="sidebar-credit">
+            Powered by <strong>AWS SAM CLI</strong> (₹0 Cost)
+          </div>
+        </div>
+      </aside>
 
-        <!-- Result Section -->
-        <section id="result-section" class="card result-card hidden">
-          <!-- Readiness Overall Header -->
-          <div class="assessment-hero">
-            <div class="gauge-container">
-              <!-- SVG Speedometer Gauge -->
-              <svg class="risk-gauge" viewBox="0 0 200 120" id="risk-gauge-svg">
-                <!-- Gauge Background Arc -->
-                <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--border)" stroke-width="18" stroke-linecap="round"/>
-                <!-- Gauge Progress Arc -->
-                <path id="gauge-arc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--primary)" stroke-width="18" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
-                <!-- Needle Indicator -->
-                <g id="gauge-needle-group" transform="rotate(-90, 100, 100)">
-                  <polygon points="97,100 103,100 100,28" fill="var(--text)" />
-                  <circle cx="100" cy="100" r="8" fill="var(--primary)" />
-                  <circle cx="100" cy="100" r="4" fill="#ffffff" />
-                </g>
-              </svg>
-              <div class="gauge-center-label">
-                <span id="gauge-score-num" class="gauge-score-num">0</span>
-                <span class="gauge-score-max">/ 4</span>
+      <!-- ── Right Main Workspace ────────────────────────────────────── -->
+      <div class="main-workspace">
+        <!-- Top Sticky Command Bar -->
+        <header class="top-command-bar">
+          <div class="command-bar-left">
+            <div class="breadcrumbs">
+              <span class="bc-root">EcoTrack AI</span>
+              <span class="bc-sep">/</span>
+              <span class="bc-current" id="current-page-title">Cockpit &amp; Overview</span>
+            </div>
+            <div class="city-status-chip" id="current-city-chip">
+              <span class="chip-pin">📍</span>
+              <span id="header-city-name">Delhi NCR</span>
+            </div>
+          </div>
+
+          <div class="command-bar-right">
+            <button id="gps-btn" class="cmd-btn" title="Auto-detect coordinates via browser GPS">
+              <span>🎯</span> GPS
+            </button>
+            <button id="fetch-live-btn" class="cmd-btn cmd-btn-primary" title="Fetch live satellite weather via Open-Meteo">
+              <span id="live-weather-spinner">⚡</span> Live Weather
+            </button>
+            <div class="aws-status-indicator" id="top-aws-indicator" title="AWS SAM Local Serverless API Status">
+              <span class="status-dot pulse-sam" id="aws-status-dot"></span>
+              <span id="aws-status-label">SAM :3000</span>
+            </div>
+            <button id="global-analyze-btn" class="cmd-analyze-btn">
+              <span>⚡</span> Analyze Risk
+            </button>
+          </div>
+        </header>
+
+        <!-- Page View Container (Tabbed Pages) -->
+        <main class="page-container">
+
+          <!-- ══════════════════════════════════════════════════════════
+               PAGE 1: COCKPIT & OVERVIEW
+               ══════════════════════════════════════════════════════════ -->
+          <div class="page-view active" id="page-overview">
+            <!-- Executive Telemetry Strip -->
+            <div class="telemetry-strip">
+              <div class="telemetry-card">
+                <span class="telemetry-label">THERMAL STRESS (FEELS-LIKE)</span>
+                <div class="telemetry-val-row">
+                  <span class="telemetry-num" id="tele-heat-val">38.0</span>
+                  <span class="telemetry-unit">°C</span>
+                </div>
+                <span class="telemetry-sub" id="tele-heat-status">Moderate Risk</span>
+              </div>
+              <div class="telemetry-card">
+                <span class="telemetry-label">EFFECTIVE RUNOFF INFLOW</span>
+                <div class="telemetry-val-row">
+                  <span class="telemetry-num" id="tele-rain-val">45.0</span>
+                  <span class="telemetry-unit">mm</span>
+                </div>
+                <span class="telemetry-sub" id="tele-rain-status">Moderate Ponding</span>
+              </div>
+              <div class="telemetry-card">
+                <span class="telemetry-label">WET-BULB LIMIT (Tw)</span>
+                <div class="telemetry-val-row">
+                  <span class="telemetry-num" id="tele-wetbulb-val">28.4</span>
+                  <span class="telemetry-unit">°C</span>
+                </div>
+                <span class="telemetry-sub" id="tele-wetbulb-status">Elevated Strain</span>
+              </div>
+              <div class="telemetry-card telemetry-card-highlight">
+                <span class="telemetry-label">READINESS SEVERITY</span>
+                <div class="telemetry-val-row">
+                  <span class="telemetry-num" id="tele-overall-score">2</span>
+                  <span class="telemetry-unit">/ 4</span>
+                </div>
+                <span class="telemetry-sub font-bold" id="tele-overall-label">Moderate Hazard</span>
               </div>
             </div>
 
-            <div class="assessment-verdict-box">
-              <div class="verdict-meta">
-                <span id="result-badge" class="risk-badge badge-neutral">—</span>
-                <span id="engine-run-badge" class="engine-run-pill">Calculated via Client Engine</span>
-              </div>
-              <h2 id="result-title">Overall Readiness Assessment</h2>
-              <p id="result-summary-text" class="verdict-narrative">Assessment pending...</p>
-              <div class="verdict-city-time">
-                <span id="result-city-name">Delhi NCR</span> · <span id="result-timestamp">Just now</span>
+            <!-- Cockpit Desktop Grid -->
+            <div class="cockpit-grid">
+              <!-- Left Column: Meteorological Input Console -->
+              <section class="card input-console-card">
+                <div class="card-header-flex">
+                  <div>
+                    <h2>📍 Local Meteorological Inputs</h2>
+                    <p class="section-desc">Select municipality, use satellite sensors, or adjust sliders.</p>
+                  </div>
+                  <div class="data-source-pill" id="data-source-pill">
+                    <span class="status-dot dot-idle" id="source-dot"></span>
+                    <span id="data-source-text">Preset / Manual</span>
+                  </div>
+                </div>
+
+                <!-- City Selector -->
+                <div class="form-group">
+                  <label for="city">Monitored Municipality</label>
+                  <select id="city">
+                    <option value="delhi">Delhi NCR (National Capital Region)</option>
+                    <option value="mumbai">Mumbai (Coastal Konkan / Island City)</option>
+                    <option value="chennai">Chennai (Coromandel Coast)</option>
+                    <option value="bengaluru">Bengaluru (Deccan Plateau)</option>
+                    <option value="kolkata">Kolkata (Gangetic Delta)</option>
+                    <option value="hyderabad">Hyderabad (Telangana Plateau)</option>
+                    <option value="ahmedabad">Ahmedabad (Western Semi-Arid)</option>
+                    <option value="pune">Pune (Western Ghats Rainshadow)</option>
+                    <option value="kochi">Kochi (Malabar Coast)</option>
+                    <option value="jaipur">Jaipur (Thar Fringe)</option>
+                  </select>
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="scenario-presets-bar">
+                  <span class="preset-title">Test Scenarios:</span>
+                  <div class="preset-btn-group">
+                    <button class="preset-btn" data-preset="severe-heat">☀️ 43°C Heat</button>
+                    <button class="preset-btn" data-preset="monsoon-flood">🌧️ 85mm Deluge</button>
+                    <button class="preset-btn" data-preset="cyclone-squall">🌀 Storm Squall</button>
+                    <button class="preset-btn" data-preset="mild-spring">⛅ 28°C Mild</button>
+                  </div>
+                </div>
+
+                <!-- Sliders Grid -->
+                <div class="sliders-stack">
+                  <!-- Temperature -->
+                  <div class="slider-row-item">
+                    <div class="slider-item-top">
+                      <label for="temperature"><span class="item-icon">🌡️</span> Ambient Temperature</label>
+                      <div class="num-wrap">
+                        <input type="number" id="temperature" min="10" max="60" step="0.5" value="38" />
+                        <span class="unit">°C</span>
+                      </div>
+                    </div>
+                    <input type="range" id="temp-slider" min="15" max="55" step="0.5" value="38" class="metric-slider" />
+                    <div class="slider-ticks"><span>15°C Mild</span><span>35°C Hot</span><span>52°C Extreme</span></div>
+                  </div>
+
+                  <!-- Relative Humidity -->
+                  <div class="slider-row-item">
+                    <div class="slider-item-top">
+                      <label for="humidity"><span class="item-icon">💧</span> Relative Humidity</label>
+                      <div class="num-wrap">
+                        <input type="number" id="humidity" min="5" max="100" step="1" value="70" />
+                        <span class="unit">%</span>
+                      </div>
+                    </div>
+                    <input type="range" id="hum-slider" min="10" max="100" step="1" value="70" class="metric-slider" />
+                    <div class="slider-ticks"><span>10% Dry</span><span>50% Moderate</span><span>95% Saturated</span></div>
+                  </div>
+
+                  <!-- Rainfall -->
+                  <div class="slider-row-item">
+                    <div class="slider-item-top">
+                      <label for="rainfall"><span class="item-icon">🌧️</span> Expected Rainfall (24h)</label>
+                      <div class="num-wrap">
+                        <input type="number" id="rainfall" min="0" max="300" step="1" value="45" />
+                        <span class="unit">mm</span>
+                      </div>
+                    </div>
+                    <input type="range" id="rain-slider" min="0" max="200" step="1" value="45" class="metric-slider" />
+                    <div class="slider-ticks"><span>0mm Dry</span><span>65mm Moderate</span><span>150mm+ Torrential</span></div>
+                  </div>
+
+                  <!-- Wind Speed -->
+                  <div class="slider-row-item">
+                    <div class="slider-item-top">
+                      <label for="wind"><span class="item-icon">💨</span> Wind Speed / Gusts</label>
+                      <div class="num-wrap">
+                        <input type="number" id="wind" min="0" max="180" step="1" value="28" />
+                        <span class="unit">km/h</span>
+                      </div>
+                    </div>
+                    <input type="range" id="wind-slider" min="0" max="120" step="1" value="28" class="metric-slider" />
+                    <div class="slider-ticks"><span>0 Calm</span><span>35 Breeze</span><span>85+ Gale</span></div>
+                  </div>
+                </div>
+
+                <button id="check-btn" class="btn-primary btn-large mt-3">
+                  <span>⚡</span> Calculate Neighbourhood Risk
+                </button>
+              </section>
+
+              <!-- Right Column: Visual Gauge & Hazard Analytics -->
+              <div class="cockpit-results-column">
+                <!-- Verdict & Speedometer Card -->
+                <section class="card verdict-card">
+                  <div class="verdict-card-layout">
+                    <!-- Speedometer SVG -->
+                    <div class="gauge-wrap">
+                      <svg class="speedometer-svg" viewBox="0 0 200 120" id="risk-gauge-svg">
+                        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--border)" stroke-width="18" stroke-linecap="round"/>
+                        <path id="gauge-arc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--primary)" stroke-width="18" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="125.6"/>
+                        <g id="gauge-needle-group" transform="rotate(-15, 100, 100)">
+                          <polygon points="97,100 103,100 100,28" fill="var(--text-primary)" />
+                          <circle cx="100" cy="100" r="8" fill="var(--primary)" />
+                          <circle cx="100" cy="100" r="4" fill="#ffffff" />
+                        </g>
+                      </svg>
+                      <div class="gauge-center-reading">
+                        <span id="gauge-score-num">2</span>
+                        <span class="gauge-max">/ 4</span>
+                      </div>
+                    </div>
+
+                    <!-- Verdict Description -->
+                    <div class="verdict-details">
+                      <div class="verdict-header-row">
+                        <span id="result-badge" class="risk-badge badge-mod">⚠️ Moderate Readiness</span>
+                        <span id="engine-run-badge" class="engine-pill">Client Risk Engine (1ms)</span>
+                      </div>
+                      <h3 id="result-title">Moderate Environmental Hazard</h3>
+                      <p id="result-summary-text" class="verdict-text">Elevated neighbourhood stress. Begin preventive measures: inspect storm drains and limit peak outdoor exertion.</p>
+                      <div class="verdict-meta-bar">
+                        <span>City: <strong id="result-city-name">Delhi NCR</strong></span>
+                        <span>·</span>
+                        <span>Evaluated: <strong id="result-timestamp">Just now</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Dual Hazard Diagnostics (Heat Stress & Rain Inflow) -->
+                <div class="dual-hazards-grid">
+                  <!-- Heat Stress Card -->
+                  <div class="card hazard-card heat-hazard">
+                    <div class="hazard-card-header">
+                      <div class="hazard-title">
+                        <span class="hazard-icon">🌡️</span>
+                        <strong>Thermal Stress (Heat Index)</strong>
+                      </div>
+                      <span id="heat-level-tag" class="hazard-badge">Moderate</span>
+                    </div>
+                    <div class="hazard-stat-row">
+                      <span id="heat-score" class="hazard-large-val">38.0</span>
+                      <span class="hazard-unit">°C Apparent Feels-Like</span>
+                    </div>
+                    <div class="hazard-bar-wrap">
+                      <div class="hazard-bar-bg">
+                        <div id="heat-bar" class="hazard-bar-fill bar-amber" style="width: 50%;"></div>
+                      </div>
+                      <div class="hazard-scale"><span>&lt;27° Low</span><span>33° Mod</span><span>41° High</span><span>41°+ Sev</span></div>
+                    </div>
+                    <p id="heat-narrative" class="hazard-narrative">Impaired human evaporative sweating. Extreme caution required during peak sun.</p>
+                  </div>
+
+                  <!-- Rain Inflow Card -->
+                  <div class="card hazard-card rain-hazard">
+                    <div class="hazard-card-header">
+                      <div class="hazard-title">
+                        <span class="hazard-icon">🌧️</span>
+                        <strong>Precipitation &amp; Runoff</strong>
+                      </div>
+                      <span id="rain-level-tag" class="hazard-badge">Moderate</span>
+                    </div>
+                    <div class="hazard-stat-row">
+                      <span id="rain-score" class="hazard-large-val">45.0</span>
+                      <span class="hazard-unit">mm Effective Precipitation</span>
+                    </div>
+                    <div class="hazard-bar-wrap">
+                      <div class="hazard-bar-bg">
+                        <div id="rain-bar" class="hazard-bar-fill bar-amber" style="width: 50%;"></div>
+                      </div>
+                      <div class="hazard-scale"><span>&lt;15mm Low</span><span>64mm Mod</span><span>115mm High</span><span>115mm+ Sev</span></div>
+                    </div>
+                    <p id="rain-narrative" class="hazard-narrative">Runoff accumulation amplified by wind gusts. Localized road depression ponding likely.</p>
+                  </div>
+                </div>
+
+                <!-- Action Highlights & Quick Switch -->
+                <section class="card quick-actions-preview-card">
+                  <div class="qa-header">
+                    <div>
+                      <h4>🛡️ Key Recommended Actions</h4>
+                      <p class="qa-sub">Immediate household and building protections.</p>
+                    </div>
+                    <button class="btn-secondary" id="jump-to-protocols-btn">View All Protocols →</button>
+                  </div>
+                  <div id="cockpit-actions-preview" class="cockpit-actions-list">
+                    <!-- Rendered via JS -->
+                  </div>
+                </section>
               </div>
             </div>
           </div>
 
-          <!-- Dual Detailed Metrics -->
-          <div class="metrics-comparison-grid">
-            <!-- Heat Analysis Card -->
-            <div class="metric-score-card heat-card">
-              <div class="metric-score-top">
-                <div class="metric-tag">
-                  <span class="tag-icon">🌡️</span>
-                  <strong>Thermal Stress (Heat Index)</strong>
-                </div>
-                <span id="heat-level-tag" class="level-sub-badge">—</span>
-              </div>
-              <div class="metric-main-value">
-                <span id="heat-score" class="big-metric-num">—</span>
-                <span class="metric-unit-text">°C Apparent Feels-Like</span>
-              </div>
-              <div class="metric-progress-wrapper">
-                <div class="progress-bar-bg">
-                  <div id="heat-bar" class="progress-fill heat-fill"></div>
-                </div>
-                <div class="progress-scale-labels">
-                  <span>&lt;27°C Low</span>
-                  <span>33°C Mod</span>
-                  <span>41°C High</span>
-                  <span>41°C+ Sev</span>
-                </div>
-              </div>
-              <p id="heat-narrative" class="metric-sub-note">Thermal assessment explanation here.</p>
-            </div>
-
-            <!-- Heavy Rain & Runoff Card -->
-            <div class="metric-score-card rain-card">
-              <div class="metric-score-top">
-                <div class="metric-tag">
-                  <span class="tag-icon">🌧️</span>
-                  <strong>Precipitation &amp; Wind Shear</strong>
-                </div>
-                <span id="rain-level-tag" class="level-sub-badge">—</span>
-              </div>
-              <div class="metric-main-value">
-                <span id="rain-score" class="big-metric-num">—</span>
-                <span class="metric-unit-text">mm Effective Precipitation</span>
-              </div>
-              <div class="metric-progress-wrapper">
-                <div class="progress-bar-bg">
-                  <div id="rain-bar" class="progress-fill rain-fill"></div>
-                </div>
-                <div class="progress-scale-labels">
-                  <span>&lt;15mm Low</span>
-                  <span>64mm Mod</span>
-                  <span>115mm High</span>
-                  <span>115mm+ Sev</span>
-                </div>
-              </div>
-              <p id="rain-narrative" class="metric-sub-note">Runoff and ponding risk note here.</p>
-            </div>
-          </div>
-
-          <!-- Transparent Formula Details (Expandable) -->
-          <details class="formula-details-accordion" open>
-            <summary>
-              <span>📐 Transparent Meteorological Formulas &amp; Calculations</span>
-              <span class="summary-caret">▼</span>
-            </summary>
-            <div id="calc-explanation" class="calc-explanation-body"></div>
-          </details>
-
-          <!-- Interactive Action Checklist -->
-          <div class="action-checklist-container">
-            <div class="checklist-header">
+          <!-- ══════════════════════════════════════════════════════════
+               PAGE 2: SAFETY PROTOCOLS & ACTION HUB
+               ══════════════════════════════════════════════════════════ -->
+          <div class="page-view" id="page-protocols">
+            <div class="page-header-flex">
               <div>
-                <h3>🛡️ Immediate Neighbourhood Safety Protocol</h3>
-                <p class="checklist-sub">Mark verified actions as your household/building team carries them out.</p>
+                <h2>🛡️ Neighbourhood Safety &amp; Action Protocol Hub</h2>
+                <p class="section-desc">Track household and community readiness tasks in real-time, generate alerts, and verify Go-Bag equipment.</p>
               </div>
-              <div class="checklist-counter-badge">
-                <span id="checklist-progress-text">0 of 3 Completed</span>
+              <div class="header-actions-row">
+                <button id="copy-alert-btn" class="btn-secondary btn-iconic">
+                  <span>📋</span> Copy WhatsApp Alert
+                </button>
+                <button id="export-json-btn" class="btn-secondary btn-iconic">
+                  <span>📥</span> Export JSON Report
+                </button>
               </div>
             </div>
 
-            <div class="checklist-progress-bar">
-              <div id="checklist-progress-fill" class="checklist-progress-fill"></div>
-            </div>
-
-            <div id="action-cards" class="action-cards-grid">
-              <!-- Rendered via JS -->
-            </div>
-          </div>
-
-          <!-- Action Sharing & Export Toolbar -->
-          <div class="share-toolbar">
-            <button id="copy-alert-btn" class="btn-secondary btn-iconic" title="Copy text alert for WhatsApp or building noticeboard">
-              <span>📋</span> Copy WhatsApp Alert
-            </button>
-            <button id="export-json-btn" class="btn-secondary btn-iconic" title="Download machine-readable JSON assessment">
-              <span>📥</span> Export Report (JSON)
-            </button>
-            <button id="reset-checklist-btn" class="btn-link">Reset Checklist</button>
-          </div>
-        </section>
-
-        <!-- What-If Simulation Sandbox -->
-        <section class="card sandbox-card">
-          <div class="card-header-flex">
-            <div>
-              <h3>🔮 "What-If" 3-Hour Trend Simulator</h3>
-              <p class="section-desc">Instantly preview how sudden cloudbursts or peak heat spikes shift your neighborhood readiness.</p>
-            </div>
-          </div>
-          <div class="sim-buttons-row">
-            <button class="sim-pill" data-sim="heat-spike">🔥 +4°C Afternoon Heat Spike</button>
-            <button class="sim-pill" data-sim="rain-cloudburst">⛈️ +50mm Cloudburst Surge</button>
-            <button class="sim-pill" data-sim="wind-gusts">💨 +35 km/h Storm Squall</button>
-            <button class="sim-pill" data-sim="cool-down">🍃 Cool Evening Relief (-6°C)</button>
-          </div>
-        </section>
-
-        <!-- Emergency Directory & Helplines Accordion -->
-        <section class="card directory-card">
-          <details class="emergency-details">
-            <summary>
-              <div class="emergency-summary-title">
-                <span class="emergency-siren">🚨</span>
-                <strong>Indian Emergency Helplines &amp; Disaster Contacts</strong>
+            <!-- Progress Meter & Category Filters -->
+            <div class="card protocol-progress-card">
+              <div class="protocol-progress-header">
+                <div>
+                  <span class="progress-super-title">OVERALL READINESS COMPLETION</span>
+                  <div class="progress-main-title" id="checklist-progress-text">0 of 4 Actions Verified (0%)</div>
+                </div>
+                <button id="reset-checklist-btn" class="btn-link">Reset Checklist</button>
               </div>
-              <span class="summary-caret">▼</span>
-            </summary>
-            <div class="emergency-grid">
+              <div class="checklist-progress-bar">
+                <div id="checklist-progress-fill" class="checklist-progress-fill"></div>
+              </div>
+              <div class="category-filters-strip">
+                <span class="filter-label">Filter Category:</span>
+                <button class="filter-pill active" data-category="all">All Actions</button>
+                <button class="filter-pill" data-category="Household">Household &amp; Assets</button>
+                <button class="filter-pill" data-category="Infrastructure">Drainage &amp; Infrastructure</button>
+                <button class="filter-pill" data-category="Health">Health &amp; Hydration</button>
+                <button class="filter-pill" data-category="Community">Community &amp; Seniors</button>
+              </div>
+            </div>
+
+            <!-- Action Protocols Grid -->
+            <div class="protocols-two-column-layout">
+              <!-- Left: Tailored Scenario Actions -->
+              <div class="action-cards-column">
+                <h3 class="column-title">🚨 Tailored Scenario Protocols (Based on Current Weather)</h3>
+                <div id="action-cards" class="action-cards-grid">
+                  <!-- Rendered via JS -->
+                </div>
+              </div>
+
+              <!-- Right: 72-Hour Emergency Go-Bag Checklist -->
+              <div class="gobag-column">
+                <div class="card gobag-card">
+                  <div class="gobag-header">
+                    <span class="gobag-icon">🎒</span>
+                    <div>
+                      <h3>72-Hour Emergency Go-Bag Kit</h3>
+                      <p class="section-desc">Essential items for flood evacuation or prolonged power outage.</p>
+                    </div>
+                  </div>
+                  <div id="gobag-list" class="gobag-list">
+                    <!-- Rendered via JS -->
+                  </div>
+                  <div class="gobag-footer">
+                    <span id="gobag-count-text">0 of 8 packed</span>
+                    <button id="reset-gobag-btn" class="btn-link">Reset Go-Bag</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════════════════
+               PAGE 3: METEOROLOGY LAB & TREND SIMULATOR
+               ══════════════════════════════════════════════════════════ -->
+          <div class="page-view" id="page-meteorology">
+            <div class="page-header-flex">
+              <div>
+                <h2>🔮 Meteorology Lab &amp; "What-If" Sandbox</h2>
+                <p class="section-desc">Inspect mathematical equations, calculate Wet-Bulb stress limits, and simulate weather spikes.</p>
+              </div>
+            </div>
+
+            <!-- Simulator Sandbox Grid -->
+            <div class="met-lab-grid">
+              <!-- What-If Simulator Card -->
+              <section class="card sandbox-large-card">
+                <div class="sandbox-header">
+                  <span class="sandbox-icon">⚡</span>
+                  <div>
+                    <h3>"What-If" 3-Hour Escalation Sandbox</h3>
+                    <p class="section-desc">Simulate rapid weather changes and observe the immediate readiness impact.</p>
+                  </div>
+                </div>
+                <div class="sim-pill-grid">
+                  <button class="sim-action-btn" data-sim="heat-spike">
+                    <span class="btn-emoji">🔥</span>
+                    <div class="sim-text">
+                      <strong>+4°C Heatwave Escalation</strong>
+                      <span>Simulates intense solar noon radiation spike</span>
+                    </div>
+                  </button>
+                  <button class="sim-action-btn" data-sim="rain-cloudburst">
+                    <span class="btn-emoji">⛈️</span>
+                    <div class="sim-text">
+                      <strong>+50mm Cloudburst Inflow</strong>
+                      <span>Simulates sudden localized torrential storm</span>
+                    </div>
+                  </button>
+                  <button class="sim-action-btn" data-sim="wind-gusts">
+                    <span class="btn-emoji">💨</span>
+                    <div class="sim-text">
+                      <strong>+35 km/h Squall Gusts</strong>
+                      <span>Simulates structural wind shear and drainage drag</span>
+                    </div>
+                  </button>
+                  <button class="sim-action-btn" data-sim="cool-down">
+                    <span class="btn-emoji">🍃</span>
+                    <div class="sim-text">
+                      <strong>-6°C Evening Cool-down</strong>
+                      <span>Simulates maritime breeze or dusk recovery</span>
+                    </div>
+                  </button>
+                </div>
+
+                <!-- Wet-Bulb Globe Temperature Analysis Card -->
+                <div class="wetbulb-deep-dive">
+                  <h4>🌡️ Wet-Bulb Temperature (Tw) Analysis (Stull 2011 Formulation)</h4>
+                  <div class="wb-calc-display">
+                    <div class="wb-reading">
+                      <span class="wb-val" id="lab-wb-val">28.4</span>
+                      <span class="wb-unit">°C Tw</span>
+                    </div>
+                    <div class="wb-details">
+                      <strong id="lab-wb-status">Elevated Thermal Strain</strong>
+                      <p id="lab-wb-note">At this wet-bulb temperature, sweating efficiency decreases by 40%. Direct physical labor must be limited to 45-minute cycles.</p>
+                    </div>
+                  </div>
+                  <div class="wb-threshold-table">
+                    <div class="wb-row"><span class="wb-dot dot-green"></span> <span>&lt;26°C: Safe baseline</span></div>
+                    <div class="wb-row"><span class="wb-dot dot-yellow"></span> <span>26–29°C: Elevated strain; frequent hydration breaks</span></div>
+                    <div class="wb-row"><span class="wb-dot dot-orange"></span> <span>29–32°C: Danger zone; outdoor labor restricted</span></div>
+                    <div class="wb-row"><span class="wb-dot dot-red"></span> <span>&gt;32°C: Extreme physiological limit; risk of fatal hyperthermia</span></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Transparent Formula Inspector -->
+              <section class="card formula-lab-card">
+                <h3>📐 Mathematical Transparency Inspector</h3>
+                <p class="section-desc">All algorithms run deterministically without opaque black-box models.</p>
+
+                <div class="formula-box">
+                  <div class="formula-title">1. Apparent Heat Index (HI) — Rothfusz Polynomial</div>
+                  <code>HI = -8.7847 + 1.6114·T + 2.3385·(0.01H)·T - 0.1461·(0.01H)²·T - 0.0123·T² + ...</code>
+                  <p class="formula-desc">Computes human evaporative heat balance based on Steadman's biometeorological model.</p>
+                </div>
+
+                <div class="formula-box">
+                  <div class="formula-title">2. Wet-Bulb Temperature (Tw) — Stull Empirical Equation</div>
+                  <code>Tw = T·atan(0.151977√(H+8.31)) + atan(T+H) - atan(H-1.67) + 0.003918·H^1.5·atan(0.0231·H) - 4.686</code>
+                  <p class="formula-desc">Accurately computes adiabatic saturation temperature across ambient surface conditions.</p>
+                </div>
+
+                <div class="formula-box">
+                  <div class="formula-title">3. Hydrological Runoff Wind Shear Factor</div>
+                  <code>R_effective = R · (1 + clamp(W - 10, 0, 100) / 180)</code>
+                  <p class="formula-desc">Accounts for horizontal wind forcing, roof runoff concentration, and drainage grate clogging.</p>
+                </div>
+
+                <div class="live-calc-results">
+                  <h4>Live Calculations for Selected Parameters:</h4>
+                  <div id="calc-explanation" class="calc-explanation-body">
+                    <!-- Rendered via JS -->
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════════════════
+               PAGE 4: EMERGENCY HELPLINES & FIRST AID
+               ══════════════════════════════════════════════════════════ -->
+          <div class="page-view" id="page-emergency">
+            <div class="page-header-flex">
+              <div>
+                <h2>🚨 Indian Emergency Helplines &amp; Field First-Aid Guide</h2>
+                <p class="section-desc">Direct national and state disaster hotlines, heatstroke diagnostics, and flash flood safety measures.</p>
+              </div>
+            </div>
+
+            <!-- Helplines Grid -->
+            <div class="emergency-contacts-grid">
               <div class="contact-card">
-                <span class="contact-num">112</span>
-                <span class="contact-role">National All-in-One Emergency Response</span>
+                <div class="contact-top">
+                  <span class="contact-num">112</span>
+                  <button class="btn-copy-num" data-num="112" title="Copy number">Copy</button>
+                </div>
+                <strong class="contact-name">National All-in-One Emergency Response</strong>
+                <span class="contact-agency">Single-point dispatch for Police, Fire &amp; Ambulance</span>
               </div>
               <div class="contact-card">
-                <span class="contact-num">1078</span>
-                <span class="contact-role">NDRF (National Disaster Response Force)</span>
+                <div class="contact-top">
+                  <span class="contact-num">1078</span>
+                  <button class="btn-copy-num" data-num="1078" title="Copy number">Copy</button>
+                </div>
+                <strong class="contact-name">NDRF (National Disaster Response Force)</strong>
+                <span class="contact-agency">Specialized flood rescue &amp; cyclone evacuation</span>
               </div>
               <div class="contact-card">
-                <span class="contact-num">1070</span>
-                <span class="contact-role">State Disaster Management Authority (SDMA)</span>
+                <div class="contact-top">
+                  <span class="contact-num">1070</span>
+                  <button class="btn-copy-num" data-num="1070" title="Copy number">Copy</button>
+                </div>
+                <strong class="contact-name">SDMA Disaster Management Control</strong>
+                <span class="contact-agency">State disaster operations &amp; reservoir water releases</span>
               </div>
               <div class="contact-card">
-                <span class="contact-num">108</span>
-                <span class="contact-role">Emergency Medical &amp; Ambulance Service</span>
+                <div class="contact-top">
+                  <span class="contact-num">108</span>
+                  <button class="btn-copy-num" data-num="108" title="Copy number">Copy</button>
+                </div>
+                <strong class="contact-name">Emergency Medical Ambulance</strong>
+                <span class="contact-agency">Trauma response &amp; heatstroke triage transport</span>
               </div>
               <div class="contact-card">
-                <span class="contact-num">1912</span>
-                <span class="contact-role">Electrical Power Safety / Downed Line Faults</span>
+                <div class="contact-top">
+                  <span class="contact-num">1912</span>
+                  <button class="btn-copy-num" data-num="1912" title="Copy number">Copy</button>
+                </div>
+                <strong class="contact-name">Electrical Power Safety / Transformer Grid</strong>
+                <span class="contact-agency">Report submerged feeders, downed lines &amp; spark hazards</span>
               </div>
               <div class="contact-card">
-                <span class="contact-num">1077</span>
-                <span class="contact-role">District Control Room (Flood &amp; Waterlogging)</span>
+                <div class="contact-top">
+                  <span class="contact-num">1077</span>
+                  <button class="btn-copy-num" data-num="1077" title="Copy number">Copy</button>
+                </div>
+                <strong class="contact-name">District Flood &amp; Waterlogging Cell</strong>
+                <span class="contact-agency">Municipal pump dispatch &amp; road inundation clearing</span>
               </div>
             </div>
-          </details>
-        </section>
 
-        <!-- History Section -->
-        <section class="card history-card">
-          <div class="history-header">
-            <div>
-              <h2>📋 Recent Assessment History</h2>
-              <p class="section-desc">Logged on this device via browser localStorage (last 5 checks).</p>
-            </div>
-            <div class="history-controls">
-              <button id="export-history-csv" class="btn-link">Export CSV</button>
-              <span class="divider-dot">·</span>
-              <button id="clear-history" class="btn-link text-danger">Clear</button>
-            </div>
-          </div>
-          <div id="history-list" class="history-list">
-            <p class="history-empty">No checks recorded yet. Fill conditions above and click "Analyze Neighbourhood Risk".</p>
-          </div>
-        </section>
-      </main>
+            <!-- Two-Column First-Aid Protocol -->
+            <div class="protocols-two-column-layout mt-4">
+              <!-- Heatstroke Protocol -->
+              <div class="card first-aid-card">
+                <div class="fa-header">
+                  <span class="fa-icon">☀️</span>
+                  <div>
+                    <h3>Heatstroke Diagnostic &amp; Field Protocol</h3>
+                    <span class="fa-sub">Medical Emergency: Act within 15 minutes</span>
+                  </div>
+                </div>
+                <div class="fa-body">
+                  <div class="fa-diff-grid">
+                    <div class="fa-diff-col">
+                      <strong class="text-orange">Heat Exhaustion</strong>
+                      <ul>
+                        <li>Heavy sweating, cold clammy skin</li>
+                        <li>Dizziness, nausea, faint pulse</li>
+                        <li>Normal core body temperature</li>
+                        <li><strong>Action:</strong> Rest in shade, drink ORS water</li>
+                      </ul>
+                    </div>
+                    <div class="fa-diff-col">
+                      <strong class="text-danger">Heatstroke (CRITICAL)</strong>
+                      <ul>
+                        <li>Hot, red, completely dry skin (sweating stopped)</li>
+                        <li>Confusion, slurred speech, unconsciousness</li>
+                        <li>Core body temp &gt; 40°C (104°F)</li>
+                        <li><strong>Action:</strong> Call 112/108; pack ice in armpits &amp; neck</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-      <!-- Footer & Hackathon Compliance -->
-      <footer class="footer">
-        <div class="disclaimer">
-          ⚠️ <strong>DECISION-SUPPORT SYSTEM NOTICE:</strong> EcoTrack AI is an open-source advisory and readiness instrument. It is not a replacement for statutory meteorology alerts issued by the India Meteorological Department (IMD) or District Disaster Management Authorities.
-        </div>
-        <div class="footer-meta">
-          <p>
-            Crafted for <strong>Environmental Hacks 2026</strong> (Track: Heat &amp; Water) · Powered locally with <strong>AWS SAM CLI</strong> (₹0 Cost Serverless Architecture).
-          </p>
-          <div class="footer-links">
-            <a href="https://github.com" target="_blank" rel="noopener">GitHub Repository</a>
-            <span>·</span>
-            <a href="https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html" target="_blank" rel="noopener">AWS SAM Documentation</a>
-            <span>·</span>
-            <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo Weather API</a>
+              <!-- Urban Flooding Protocol -->
+              <div class="card first-aid-card">
+                <div class="fa-header">
+                  <span class="fa-icon">🌊</span>
+                  <div>
+                    <h3>Urban Flooding &amp; Submergence Protocol</h3>
+                    <span class="fa-sub">Key survival steps during sudden inundation</span>
+                  </div>
+                </div>
+                <div class="fa-body">
+                  <ul class="fa-checklist">
+                    <li><strong>Turn Around, Don't Drown:</strong> Just 15cm (6 inches) of moving water can sweep a pedestrian off their feet; 30cm can float a compact vehicle.</li>
+                    <li><strong>Submerged Manhole Risk:</strong> Flood waters dislodge sewer manhole covers. Never wade through brown water without a sounding stick.</li>
+                    <li><strong>Electrical Disconnection:</strong> If ground floor water enters within 15cm of sockets, turn off the main double-pole isolator on upper floor.</li>
+                    <li><strong>Stagnant Water Vector Warning:</strong> Disinfect standing water within 48 hours to halt Dengue and Leptospirosis outbreaks.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </footer>
+
+          <!-- ══════════════════════════════════════════════════════════
+               PAGE 5: HISTORY & ANALYTICS
+               ══════════════════════════════════════════════════════════ -->
+          <div class="page-view" id="page-history">
+            <div class="page-header-flex">
+              <div>
+                <h2>📋 Assessment History &amp; Analytical Logs</h2>
+                <p class="section-desc">Audit past weather assessments, examine parameter trends, or export datasets as CSV.</p>
+              </div>
+              <div class="header-actions-row">
+                <button id="export-history-csv" class="btn-secondary btn-iconic">
+                  <span>📊</span> Export CSV
+                </button>
+                <button id="clear-history" class="btn-link text-danger">Clear All Logs</button>
+              </div>
+            </div>
+
+            <!-- Analytical Summary Tiles -->
+            <div class="telemetry-strip mb-4">
+              <div class="telemetry-card">
+                <span class="telemetry-label">TOTAL ASSESSMENTS</span>
+                <div class="telemetry-val-row"><span class="telemetry-num" id="kpi-total-scans">0</span></div>
+                <span class="telemetry-sub">Logged on device</span>
+              </div>
+              <div class="telemetry-card">
+                <span class="telemetry-label">PEAK HEAT INDEX</span>
+                <div class="telemetry-val-row"><span class="telemetry-num" id="kpi-peak-heat">0.0</span><span class="telemetry-unit">°C</span></div>
+                <span class="telemetry-sub">Highest thermal load</span>
+              </div>
+              <div class="telemetry-card">
+                <span class="telemetry-label">MAX PRECIPITATION</span>
+                <div class="telemetry-val-row"><span class="telemetry-num" id="kpi-max-rain">0.0</span><span class="telemetry-unit">mm</span></div>
+                <span class="telemetry-sub">Maximum rainfall entry</span>
+              </div>
+              <div class="telemetry-card">
+                <span class="telemetry-label">DOMINANT HAZARD</span>
+                <div class="telemetry-val-row"><span class="telemetry-num" id="kpi-dominant-risk" style="font-size:1.4rem;">None</span></div>
+                <span class="telemetry-sub">Most frequent severity</span>
+              </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="card history-table-card">
+              <div class="table-responsive">
+                <table class="desktop-table">
+                  <thead>
+                    <tr>
+                      <th>Time &amp; Date</th>
+                      <th>Municipality</th>
+                      <th>Readiness Verdict</th>
+                      <th>Temp / Hum</th>
+                      <th>Rain / Wind</th>
+                      <th>Heat Index</th>
+                      <th>Eff. Rain</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="history-table-body">
+                    <!-- Rendered via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════════════════
+               PAGE 6: AWS SAM ARCHITECTURE & LIVE CONSOLE
+               ══════════════════════════════════════════════════════════ -->
+          <div class="page-view" id="page-aws">
+            <div class="page-header-flex">
+              <div>
+                <h2>☁️ AWS Serverless Application Model (SAM) Console</h2>
+                <p class="section-desc">Inspect the local serverless architecture, live Lambda endpoint execution, and CloudFormation template.</p>
+              </div>
+              <div class="header-actions-row">
+                <button id="test-sam-endpoint-btn" class="btn-primary btn-iconic">
+                  <span>⚡</span> Ping SAM Endpoint (:3000)
+                </button>
+              </div>
+            </div>
+
+            <!-- SAM Architecture Inspector Grid -->
+            <div class="aws-console-grid">
+              <!-- Left: Live API Request / Response Inspector -->
+              <section class="card aws-inspector-card">
+                <div class="inspector-header">
+                  <div class="endpoint-badge-row">
+                    <span class="http-method-pill">POST</span>
+                    <span class="endpoint-url">http://127.0.0.1:3000/assess</span>
+                  </div>
+                  <span id="sam-latency-pill" class="latency-pill">Latency: -- ms</span>
+                </div>
+
+                <div class="inspector-editor-row">
+                  <!-- Request Payload -->
+                  <div class="inspector-box">
+                    <div class="box-header">Request Payload (JSON)</div>
+                    <pre class="json-code" id="sam-req-preview">{
+  "temperature": 42.0,
+  "humidity": 35,
+  "rainfall": 5.0,
+  "wind": 15.0
+}</pre>
+                  </div>
+
+                  <!-- Response Output -->
+                  <div class="inspector-box">
+                    <div class="box-header">Response Output (200 OK)</div>
+                    <pre class="json-code" id="sam-res-preview">// Click "Ping SAM Endpoint" to invoke local Lambda</pre>
+                  </div>
+                </div>
+
+                <div class="inspector-terminal-box">
+                  <div class="terminal-header">
+                    <span>💻 Local Terminal Execution Command</span>
+                    <button class="btn-copy-cmd" data-cmd="sam local start-api">Copy</button>
+                  </div>
+                  <code class="terminal-code">sam build &amp;&amp; sam local start-api</code>
+                </div>
+              </section>
+
+              <!-- Right: Serverless Architecture Spec -->
+              <section class="card aws-spec-card">
+                <h3>🏗️ Serverless Architecture Diagram</h3>
+                <div class="arch-flow">
+                  <div class="arch-node">
+                    <span class="arch-icon">🌐</span>
+                    <strong>Vite Desktop Frontend</strong>
+                    <span>Port 5173 / Client Engine</span>
+                  </div>
+                  <div class="arch-arrow">→ HTTP POST →</div>
+                  <div class="arch-node">
+                    <span class="arch-icon">⚡</span>
+                    <strong>AWS SAM API Gateway</strong>
+                    <span>Local Mock on Port 3000</span>
+                  </div>
+                  <div class="arch-arrow">→ Invokes →</div>
+                  <div class="arch-node">
+                    <span class="arch-icon">λ</span>
+                    <strong>RiskFunction (Lambda)</strong>
+                    <span>Node.js 20.x runtime</span>
+                  </div>
+                </div>
+
+                <div class="sam-highlights-list">
+                  <div class="sh-item">
+                    <strong>₹0 Cloud Spend:</strong> Fully runs on local developer workstation via AWS SAM CLI.
+                  </div>
+                  <div class="sh-item">
+                    <strong>CloudFormation Template:</strong> Defined declaratively in <code>template.yaml</code>.
+                  </div>
+                  <div class="sh-item">
+                    <strong>Zero-Dependency Lambda:</strong> <code>lambda/risk.mjs</code> runs without bloated third-party packages.
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+        </main>
+      </div>
     </div>
 
     <!-- Notification Toast Container -->

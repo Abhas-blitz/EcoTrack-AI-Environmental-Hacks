@@ -3,6 +3,7 @@ import {
   assessRisk,
   CITY_CATALOG,
   SAMPLE_CONDITIONS,
+  GO_BAG_ITEMS,
   LEVEL_ORDER
 } from './risk-engine.js';
 
@@ -11,18 +12,34 @@ import {
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
-// Theme Elements
+// Navigation & Pages
+const navItems = $$('.sidebar-nav .nav-item');
+const pageViews = $$('.page-view');
+const currentPageTitle = $('#current-page-title');
+const navOverallBadge = $('#nav-overall-badge');
+const navActionsCount = $('#nav-actions-count');
+const navHistoryCount = $('#nav-history-count');
+const sidebarSamDot = $('#sidebar-sam-dot');
+const jumpToProtocolsBtn = $('#jump-to-protocols-btn');
+
+// Theme & Backend Toggle
 const themeToggleBtn = $('#theme-toggle');
 const themeIcon = themeToggleBtn.querySelector('.theme-icon');
 const themeText = themeToggleBtn.querySelector('.theme-text');
-
-// Backend Execution Elements
 const backendToggle = $('#backend-toggle');
-const currentEngineLabel = $('#current-engine-label');
-const pingSamBtn = $('#ping-sam-btn');
-const awsStatusChip = $('#aws-status-chip');
+const sidebarEnginePill = $('#sidebar-engine-pill');
+const topAwsIndicator = $('#top-aws-indicator');
+const awsStatusDot = $('#aws-status-dot');
+const awsStatusLabel = $('#aws-status-label');
 
-// Input Controls
+// Top Command Bar
+const headerCityName = $('#header-city-name');
+const gpsBtn = $('#gps-btn');
+const fetchLiveBtn = $('#fetch-live-btn');
+const liveWeatherSpinner = $('#live-weather-spinner');
+const globalAnalyzeBtn = $('#global-analyze-btn');
+
+// Inputs & Presets
 const citySelect = $('#city');
 const tempInput = $('#temperature');
 const humInput = $('#humidity');
@@ -35,14 +52,23 @@ const rainSlider = $('#rain-slider');
 const windSlider = $('#wind-slider');
 
 const checkBtn = $('#check-btn');
-const gpsBtn = $('#gps-btn');
-const fetchLiveBtn = $('#fetch-live-btn');
-const liveWeatherSpinner = $('#live-weather-spinner');
-const dataSourceStatus = $('#data-source-status');
 const dataSourceText = $('#data-source-text');
+const sourceDot = $('#source-dot');
 
-// Result Elements
-const resultSection = $('#result-section');
+// Telemetry Strip
+const teleHeatVal = $('#tele-heat-val');
+const teleHeatStatus = $('#tele-heat-status');
+const teleRainVal = $('#tele-rain-val');
+const teleRainStatus = $('#tele-rain-status');
+const teleWetbulbVal = $('#tele-wetbulb-val');
+const teleWetbulbStatus = $('#tele-wetbulb-status');
+const teleOverallScore = $('#tele-overall-score');
+const teleOverallLabel = $('#tele-overall-label');
+
+// Cockpit Verdict & Gauge
+const gaugeArc = $('#gauge-arc');
+const gaugeNeedleGroup = $('#gauge-needle-group');
+const gaugeScoreNum = $('#gauge-score-num');
 const resultBadge = $('#result-badge');
 const engineRunBadge = $('#engine-run-badge');
 const resultTitle = $('#result-title');
@@ -50,12 +76,7 @@ const resultSummaryText = $('#result-summary-text');
 const resultCityName = $('#result-city-name');
 const resultTimestamp = $('#result-timestamp');
 
-// Gauge Elements
-const gaugeArc = $('#gauge-arc');
-const gaugeNeedleGroup = $('#gauge-needle-group');
-const gaugeScoreNum = $('#gauge-score-num');
-
-// Metrics Breakdown Elements
+// Hazard Diagnostic Cards
 const heatLevelTag = $('#heat-level-tag');
 const heatScore = $('#heat-score');
 const heatBar = $('#heat-bar');
@@ -66,35 +87,69 @@ const rainScore = $('#rain-score');
 const rainBar = $('#rain-bar');
 const rainNarrative = $('#rain-narrative');
 
-const calcExplain = $('#calc-explanation');
+const cockpitActionsPreview = $('#cockpit-actions-preview');
 
-// Checklist Elements
-const actionCards = $('#action-cards');
+// Protocols Page
 const checklistProgressText = $('#checklist-progress-text');
 const checklistProgressFill = $('#checklist-progress-fill');
 const resetChecklistBtn = $('#reset-checklist-btn');
-
-// Share & Export Elements
+const actionCardsGrid = $('#action-cards');
 const copyAlertBtn = $('#copy-alert-btn');
 const exportJsonBtn = $('#export-json-btn');
+const gobagList = $('#gobag-list');
+const gobagCountText = $('#gobag-count-text');
+const resetGobagBtn = $('#reset-gobag-btn');
+const filterPills = $$('.filter-pill');
 
-// History Elements
-const historyList = $('#history-list');
+// Meteorology Lab Page
+const labWbVal = $('#lab-wb-val');
+const labWbStatus = $('#lab-wb-status');
+const labWbNote = $('#lab-wb-note');
+const calcExplain = $('#calc-explanation');
+
+// Emergency Page
+const btnCopyNums = $$('.btn-copy-num');
+
+// History Page
+const kpiTotalScans = $('#kpi-total-scans');
+const kpiPeakHeat = $('#kpi-peak-heat');
+const kpiMaxRain = $('#kpi-max-rain');
+const kpiDominantRisk = $('#kpi-dominant-risk');
+const historyTableBody = $('#history-table-body');
 const clearHistoryBtn = $('#clear-history');
 const exportHistoryCsvBtn = $('#export-history-csv');
+
+// AWS SAM Console Page
+const testSamEndpointBtn = $('#test-sam-endpoint-btn');
+const samLatencyPill = $('#sam-latency-pill');
+const samReqPreview = $('#sam-req-preview');
+const samResPreview = $('#sam-res-preview');
+const btnCopyCmds = $$('.btn-copy-cmd');
 
 // Toast Container
 const toastContainer = $('#toast-container');
 
 // ── State Variables ────────────────────────────────────────────────────
 
-const STORAGE_KEY_HISTORY = 'ecotrack_history_v2';
+const STORAGE_KEY_HISTORY = 'ecotrack_history_v3';
 const STORAGE_KEY_THEME = 'ecotrack_theme';
+const STORAGE_KEY_GOBAG = 'ecotrack_gobag';
 const SAM_ENDPOINT = 'http://127.0.0.1:3000/assess';
 
 let currentAssessment = null;
 let completedActionIds = new Set();
+let packedGoBagIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_GOBAG) || '[]'));
+let activeCategoryFilter = 'all';
 let isSamMode = false;
+
+const PAGE_TITLES = {
+  'page-overview': 'Cockpit & Overview',
+  'page-protocols': 'Safety Protocols & Action Hub',
+  'page-meteorology': 'Meteorology Lab & "What-If" Sandbox',
+  'page-emergency': 'Emergency Helplines & First-Aid',
+  'page-history': 'History & Analytics Logs',
+  'page-aws': 'AWS SAM Serverless Console'
+};
 
 const LEVEL_PALETTES = {
   Low: {
@@ -135,13 +190,35 @@ const LEVEL_PALETTES = {
   }
 };
 
+// ── Multi-Page Navigation System ───────────────────────────────────────
+
+function switchPage(pageId) {
+  navItems.forEach((item) => {
+    item.classList.toggle('active', item.dataset.page === pageId);
+  });
+
+  pageViews.forEach((view) => {
+    view.classList.toggle('active', view.id === pageId);
+  });
+
+  currentPageTitle.textContent = PAGE_TITLES[pageId] || 'Command Center';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+navItems.forEach((btn) => {
+  btn.addEventListener('click', () => switchPage(btn.dataset.page));
+});
+
+if (jumpToProtocolsBtn) {
+  jumpToProtocolsBtn.addEventListener('click', () => switchPage('page-protocols'));
+}
+
 // ── Theme Manager ──────────────────────────────────────────────────────
 
 function initTheme() {
   const savedTheme = localStorage.getItem(STORAGE_KEY_THEME);
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
-  applyTheme(initialTheme);
+  applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
 }
 
 function applyTheme(theme) {
@@ -149,10 +226,10 @@ function applyTheme(theme) {
   localStorage.setItem(STORAGE_KEY_THEME, theme);
   if (theme === 'dark') {
     themeIcon.textContent = '☀️';
-    themeText.textContent = 'Light';
+    themeText.textContent = 'Light Mode';
   } else {
     themeIcon.textContent = '🌙';
-    themeText.textContent = 'Dark';
+    themeText.textContent = 'Dark Mode';
   }
 }
 
@@ -161,27 +238,21 @@ themeToggleBtn.addEventListener('click', () => {
   applyTheme(current === 'dark' ? 'light' : 'dark');
 });
 
-// ── Toast Notifications ────────────────────────────────────────────────
+// ── Floating Toast Manager ─────────────────────────────────────────────
 
 function showToast(message, icon = 'ℹ️') {
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
   toastContainer.appendChild(toast);
-  setTimeout(() => {
-    toast.remove();
-  }, 3200);
+  setTimeout(() => toast.remove(), 3200);
 }
 
 // ── Dual Slider ⇄ Input Synchronizer ───────────────────────────────────
 
 function syncInputs(numberEl, sliderEl) {
-  numberEl.addEventListener('input', () => {
-    sliderEl.value = numberEl.value;
-  });
-  sliderEl.addEventListener('input', () => {
-    numberEl.value = sliderEl.value;
-  });
+  numberEl.addEventListener('input', () => { sliderEl.value = numberEl.value; });
+  sliderEl.addEventListener('input', () => { numberEl.value = sliderEl.value; });
 }
 
 syncInputs(tempInput, tempSlider);
@@ -196,18 +267,20 @@ function setFormValues(t, h, r, w) {
   windInput.value = w; windSlider.value = w;
 }
 
-// ── City & Preset Handling ─────────────────────────────────────────────
+// ── City & Scenario Presets ────────────────────────────────────────────
 
 citySelect.addEventListener('change', () => {
   const cityId = citySelect.value;
   const defaults = SAMPLE_CONDITIONS[cityId];
+  const cityObj = CITY_CATALOG.find((c) => c.id === cityId);
+  if (cityObj) headerCityName.textContent = cityObj.name;
+
   if (defaults) {
     setFormValues(defaults.temperature, defaults.humidity, defaults.rainfall, defaults.wind);
-    setDataSourceStatus('idle', `Preset (${citySelect.options[citySelect.selectedIndex].text.split(' ')[0]})`);
+    setDataSourceStatus('idle', `Preset (${cityObj ? cityObj.name : cityId})`);
   }
 });
 
-// Preset buttons
 $$('.preset-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     const preset = btn.dataset.preset;
@@ -215,21 +288,25 @@ $$('.preset-btn').forEach((btn) => {
       case 'severe-heat':
         setFormValues(43, 32, 0, 18);
         citySelect.value = 'delhi';
+        headerCityName.textContent = 'Delhi NCR';
         showToast('Loaded Severe Heatwave Scenario (43°C)', '☀️');
         break;
       case 'monsoon-flood':
         setFormValues(31, 88, 85, 35);
         citySelect.value = 'mumbai';
+        headerCityName.textContent = 'Mumbai';
         showToast('Loaded Monsoon Cloudburst Scenario (85mm Rain)', '🌧️');
         break;
       case 'cyclone-squall':
         setFormValues(29, 92, 70, 75);
         citySelect.value = 'chennai';
+        headerCityName.textContent = 'Chennai';
         showToast('Loaded Coastal Squall Scenario (75 km/h Wind)', '🌀');
         break;
       case 'mild-spring':
         setFormValues(27.5, 52, 10, 12);
         citySelect.value = 'bengaluru';
+        headerCityName.textContent = 'Bengaluru';
         showToast('Loaded Mild Weather Scenario (Low Risk)', '⛅');
         break;
     }
@@ -239,16 +316,15 @@ $$('.preset-btn').forEach((btn) => {
 });
 
 function setDataSourceStatus(type, label) {
-  const dot = dataSourceStatus.querySelector('.status-dot');
   if (type === 'live') {
-    dot.className = 'status-dot dot-live';
+    sourceDot.className = 'status-dot dot-live';
   } else {
-    dot.className = 'status-dot dot-idle';
+    sourceDot.className = 'status-dot dot-idle';
   }
   dataSourceText.textContent = label;
 }
 
-// ── Live Weather Fetching (Free Open-Meteo API) ────────────────────────
+// ── Live Weather Fetching (Open-Meteo API) ─────────────────────────────
 
 async function fetchLiveWeatherForCity(cityId) {
   const cityData = CITY_CATALOG.find((c) => c.id === cityId);
@@ -275,9 +351,9 @@ async function fetchLiveWeatherFromCoords(lat, lon, label) {
 
     setFormValues(t, h, r, w);
     setDataSourceStatus('live', `Live Open-Meteo (${label})`);
-    showToast(`Live weather retrieved for ${label}: ${t}°C, ${h}% hum, ${r}mm rain`, '🛰️');
+    headerCityName.textContent = label;
+    showToast(`Live weather loaded for ${label}: ${t}°C, ${h}% hum, ${r}mm rain`, '🛰️');
 
-    // Automatically trigger assessment
     triggerRiskCheck();
   } catch (err) {
     showToast('Failed to retrieve live weather. Check internet connection.', '⚠️');
@@ -288,26 +364,20 @@ async function fetchLiveWeatherFromCoords(lat, lon, label) {
   }
 }
 
-fetchLiveBtn.addEventListener('click', () => {
-  fetchLiveWeatherForCity(citySelect.value);
-});
+fetchLiveBtn.addEventListener('click', () => fetchLiveWeatherForCity(citySelect.value));
 
-// GPS Location
 gpsBtn.addEventListener('click', () => {
   if (!navigator.geolocation) {
     showToast('Geolocation is not supported by your browser.', '⚠️');
     return;
   }
-
-  showToast('Requesting GPS coordinates...', '🎯');
+  showToast('Acquiring GPS coordinates...', '🎯');
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       const { latitude, longitude } = pos.coords;
       fetchLiveWeatherFromCoords(latitude, longitude, `GPS (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`);
     },
-    (err) => {
-      showToast(`GPS location failed: ${err.message}`, '⚠️');
-    },
+    (err) => showToast(`GPS location failed: ${err.message}`, '⚠️'),
     { timeout: 10000 }
   );
 });
@@ -317,20 +387,21 @@ gpsBtn.addEventListener('click', () => {
 backendToggle.addEventListener('change', () => {
   isSamMode = backendToggle.checked;
   if (isSamMode) {
-    currentEngineLabel.textContent = 'AWS SAM Local API (:3000)';
-    currentEngineLabel.style.color = '#d97706';
-    currentEngineLabel.style.background = 'rgba(255, 153, 0, 0.15)';
-    showToast('Switched to AWS SAM Local API mode. Checking local endpoint...', '☁️');
+    sidebarEnginePill.textContent = 'SAM :3000';
+    sidebarEnginePill.style.color = '#d97706';
+    sidebarEnginePill.style.background = 'rgba(255, 153, 0, 0.15)';
+    showToast('Switched to AWS SAM Local API mode (:3000)', '☁️');
     pingSamApi(false);
   } else {
-    currentEngineLabel.textContent = 'Local Client Risk Engine';
-    currentEngineLabel.style.color = 'var(--primary)';
-    currentEngineLabel.style.background = 'var(--primary-subtle)';
+    sidebarEnginePill.textContent = 'Client';
+    sidebarEnginePill.style.color = 'var(--primary)';
+    sidebarEnginePill.style.background = 'var(--primary-subtle)';
     showToast('Switched to Client Risk Engine.', '💻');
   }
 });
 
 async function pingSamApi(showSuccessToast = true) {
+  const startTime = performance.now();
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 2500);
@@ -341,15 +412,22 @@ async function pingSamApi(showSuccessToast = true) {
     });
     clearTimeout(timer);
 
+    const latency = Math.round(performance.now() - startTime);
+
     if (res.ok || res.status === 200 || res.status === 204) {
-      awsStatusChip.innerHTML = '<span class="status-dot dot-live"></span> AWS SAM Local API Online (200 OK)';
-      awsStatusChip.style.borderColor = '#10b981';
-      if (showSuccessToast) showToast('AWS SAM Local API is responding on http://127.0.0.1:3000/assess', '✅');
+      awsStatusDot.className = 'status-dot dot-live';
+      awsStatusLabel.textContent = `SAM Ready (${latency}ms)`;
+      sidebarSamDot.className = 'nav-status-dot dot-live';
+      samLatencyPill.textContent = `Latency: ${latency} ms (200 OK)`;
+
+      if (showSuccessToast) showToast(`AWS SAM Local API is responding on :3000 (${latency}ms)`, '✅');
       return true;
     }
   } catch (e) {
-    awsStatusChip.innerHTML = '<span class="status-dot pulse-sam"></span> AWS SAM Local Inactive';
-    awsStatusChip.style.borderColor = 'rgba(255, 153, 0, 0.3)';
+    awsStatusDot.className = 'status-dot pulse-sam';
+    awsStatusLabel.textContent = 'SAM Inactive';
+    sidebarSamDot.className = 'nav-status-dot pulse-sam';
+    samLatencyPill.textContent = 'Status: Disconnected (:3000 offline)';
     if (showSuccessToast) {
       showToast('AWS SAM local server not detected. Start with: `sam local start-api`', '⚠️');
     }
@@ -358,15 +436,36 @@ async function pingSamApi(showSuccessToast = true) {
   return false;
 }
 
-pingSamBtn.addEventListener('click', () => {
-  pingSamApi(true);
-});
+if (testSamEndpointBtn) {
+  testSamEndpointBtn.addEventListener('click', async () => {
+    const isOnline = await pingSamApi(true);
+    if (isOnline) {
+      const payload = {
+        temperature: parseFloat(tempInput.value) || 38,
+        humidity: parseFloat(humInput.value) || 70,
+        rainfall: parseFloat(rainInput.value) || 45,
+        wind: parseFloat(windInput.value) || 28
+      };
+      samReqPreview.textContent = JSON.stringify(payload, null, 2);
+      try {
+        const res = await fetch(SAM_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        samResPreview.textContent = JSON.stringify(json, null, 2);
+      } catch (err) {
+        samResPreview.textContent = `// Error: ${err.message}`;
+      }
+    }
+  });
+}
 
-// ── Assessment Engine Controller ───────────────────────────────────────
+// ── Assessment Execution Controller ────────────────────────────────────
 
-checkBtn.addEventListener('click', () => {
-  triggerRiskCheck();
-});
+if (checkBtn) checkBtn.addEventListener('click', triggerRiskCheck);
+if (globalAnalyzeBtn) globalAnalyzeBtn.addEventListener('click', triggerRiskCheck);
 
 async function triggerRiskCheck() {
   const temperature = parseFloat(tempInput.value);
@@ -375,36 +474,33 @@ async function triggerRiskCheck() {
   const wind = parseFloat(windInput.value);
 
   if ([temperature, humidity, rainfall, wind].some(Number.isNaN)) {
-    checkBtn.classList.add('shake');
-    setTimeout(() => checkBtn.classList.remove('shake'), 400);
-    showToast('Please provide valid numbers for all weather parameters.', '⚠️');
+    showToast('Please enter valid numeric values for all parameters.', '⚠️');
     return;
   }
 
-  const selectedCityText = citySelect.options[citySelect.selectedIndex].text;
+  const selectedCityText = citySelect.options[citySelect.selectedIndex].text.split('(')[0].trim();
   let result = null;
   let executionSource = 'Client Risk Engine';
   const startTime = performance.now();
 
   if (isSamMode) {
     try {
-      showToast('Dispatching request to AWS SAM Local endpoint...', '☁️');
+      showToast('Querying AWS SAM Local Lambda (:3000)...', '☁️');
       const response = await fetch(SAM_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ temperature, humidity, rainfall, wind }),
       });
-
       if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
       result = await response.json();
       const elapsed = Math.round(performance.now() - startTime);
       executionSource = `AWS SAM Local Lambda (${elapsed}ms)`;
-      showToast(`Evaluated via AWS SAM Lambda in ${elapsed}ms`, '⚡');
+      showToast(`Computed via AWS SAM Lambda in ${elapsed}ms`, '⚡');
     } catch (err) {
-      console.warn('SAM invoke failed, gracefully falling back to Client Engine:', err);
+      console.warn('SAM invoke failed, falling back to client:', err);
       result = assessRisk({ temperature, humidity, rainfall, wind });
-      executionSource = 'Client Engine (SAM Offline Fallback)';
-      showToast('SAM API offline; seamlessly processed via client risk engine.', '🔄');
+      executionSource = 'Client Engine (SAM Offline)';
+      showToast('SAM API unreachable; rendered via Client Risk Engine.', '🔄');
     }
   } else {
     result = assessRisk({ temperature, humidity, rainfall, wind });
@@ -424,67 +520,93 @@ async function triggerRiskCheck() {
   renderAssessment(currentAssessment);
   saveToHistory(currentAssessment);
   renderHistory();
-
-  resultSection.classList.remove('hidden');
-  resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// ── Render Assessment Results ──────────────────────────────────────────
+// ── Render Assessment Results to Cockpit & All Pages ───────────────────
 
 function renderAssessment(data) {
   const palette = LEVEL_PALETTES[data.overall] || LEVEL_PALETTES.Low;
 
-  // Header & Verdict
-  resultBadge.textContent = `${palette.emoji} ${data.overall} Readiness`;
-  resultBadge.style.background = palette.bg;
-  resultBadge.style.color = palette.fg;
+  // 1. Telemetry Strip Updates
+  teleHeatVal.textContent = data.heat.heatIndex;
+  teleHeatStatus.textContent = `${data.heat.level} Heat Stress`;
+  teleRainVal.textContent = data.rain.effectiveRainfall;
+  teleRainStatus.textContent = `${data.rain.level} Runoff Inflow`;
+  teleWetbulbVal.textContent = data.heat.wetBulb;
+  teleWetbulbStatus.textContent = data.heat.wetBulbStatus;
+  teleOverallScore.textContent = data.overallScore;
+  teleOverallLabel.textContent = `${data.overall} Hazard`;
 
-  resultTitle.textContent = `${data.overall} Hazard Level · ${data.overallScore}/4 Severity`;
+  // 2. Sidebar Badges
+  navOverallBadge.textContent = data.overall;
+  navOverallBadge.className = `nav-badge badge-${data.overall.toLowerCase().slice(0, 3)}`;
+  navActionsCount.textContent = data.actions.length;
+
+  // 3. Verdict & Gauge Animation
+  resultBadge.textContent = `${palette.emoji} ${data.overall} Readiness`;
+  resultBadge.className = `risk-badge badge-${data.overall.toLowerCase().slice(0, 3)}`;
+  resultTitle.textContent = `${data.overall} Environmental Hazard (Score ${data.overallScore}/4)`;
   resultSummaryText.textContent = palette.summary;
   engineRunBadge.textContent = data.executionSource;
-
   resultCityName.textContent = data.city;
   resultTimestamp.textContent = new Date().toLocaleTimeString();
 
-  // Speedometer Gauge Animation
   gaugeScoreNum.textContent = data.overallScore;
   gaugeNeedleGroup.style.transform = `rotate(${palette.needleAngle}deg)`;
   gaugeArc.style.stroke = palette.bar;
   gaugeArc.style.strokeDashoffset = palette.dashOffset;
 
-  // Heat Breakdown
-  const heatPalette = LEVEL_PALETTES[data.heat.level];
-  heatLevelTag.textContent = `${heatPalette.emoji} ${data.heat.level}`;
-  heatLevelTag.style.background = heatPalette.bg;
-  heatLevelTag.style.color = heatPalette.fg;
+  // 4. Hazard Diagnostic Cards
+  heatLevelTag.textContent = data.heat.level;
+  heatLevelTag.className = `hazard-badge badge-${data.heat.level.toLowerCase().slice(0, 3)}`;
   heatScore.textContent = data.heat.heatIndex;
   heatBar.style.width = `${(data.heat.score / 4) * 100}%`;
-  heatBar.style.backgroundColor = heatPalette.bar;
-  heatNarrative.textContent = `At ${data.heat.rawTemp}°C with ${data.heat.rawHumidity}% humidity, human evaporative cooling is impaired. ${data.heat.label}.`;
+  heatBar.style.backgroundColor = LEVEL_PALETTES[data.heat.level].bar;
+  heatNarrative.textContent = `At ${data.heat.rawTemp}°C with ${data.heat.rawHumidity}% humidity, feels like ${data.heat.heatIndex}°C. ${data.heat.label}.`;
 
-  // Rain Breakdown
-  const rainPalette = LEVEL_PALETTES[data.rain.level];
-  rainLevelTag.textContent = `${rainPalette.emoji} ${data.rain.level}`;
-  rainLevelTag.style.background = rainPalette.bg;
-  rainLevelTag.style.color = rainPalette.fg;
+  rainLevelTag.textContent = data.rain.level;
+  rainLevelTag.className = `hazard-badge badge-${data.rain.level.toLowerCase().slice(0, 3)}`;
   rainScore.textContent = data.rain.effectiveRainfall;
   rainBar.style.width = `${(data.rain.score / 4) * 100}%`;
-  rainBar.style.backgroundColor = rainPalette.bar;
-  rainNarrative.textContent = `Expected precipitation of ${data.rain.rawRainfall}mm with ${data.rain.rawWind} km/h wind gusts accelerates runoff accumulation. ${data.rain.label}.`;
+  rainBar.style.backgroundColor = LEVEL_PALETTES[data.rain.level].bar;
+  rainNarrative.textContent = `Rainfall ${data.rain.rawRainfall}mm adjusted for ${data.rain.rawWind} km/h wind gusts gives effective runoff of ${data.rain.effectiveRainfall}mm. ${data.rain.label}.`;
 
-  // Transparent Formula Body
+  // 5. Cockpit Action Highlights Strip
+  if (cockpitActionsPreview) {
+    cockpitActionsPreview.innerHTML = data.actions
+      .slice(0, 3)
+      .map((a) => `
+        <div class="cockpit-action-item">
+          <span>${a.icon}</span>
+          <div>
+            <strong>${a.title}</strong>
+            <span class="qa-sub"> — ${a.body.slice(0, 75)}...</span>
+          </div>
+        </div>
+      `)
+      .join('');
+  }
+
+  // 6. Meteorology Lab Details
+  labWbVal.textContent = data.heat.wetBulb;
+  labWbStatus.textContent = data.heat.wetBulbStatus;
+  labWbNote.textContent = data.heat.wetBulbNote;
   calcExplain.innerHTML = data.explanation
     .map((line) => `<div class="explain-line"><span>📐</span><span>${line}</span></div>`)
     .join('');
 
-  // Actions Checklist
+  // 7. Protocols Page Checklist
   renderChecklist(data.actions);
 }
 
-// ── Action Checklist Manager ───────────────────────────────────────────
+// ── Protocols Page & Go-Bag Manager ────────────────────────────────────
 
 function renderChecklist(actions) {
-  actionCards.innerHTML = actions
+  const filtered = activeCategoryFilter === 'all'
+    ? actions
+    : actions.filter((a) => a.category === activeCategoryFilter);
+
+  actionCardsGrid.innerHTML = filtered
     .map((act) => {
       const isChecked = completedActionIds.has(act.id);
       return `
@@ -494,7 +616,7 @@ function renderChecklist(actions) {
         <div class="action-content">
           <div class="action-title-row">
             <span class="action-title">${act.title}</span>
-            <span class="action-tag">${act.tag || 'Safety'}</span>
+            <span class="action-tag ${act.priority === 'Critical' ? 'action-priority-crit' : act.priority === 'High' ? 'action-priority-high' : ''}">${act.tag || act.category}</span>
           </div>
           <p class="action-body">${act.body}</p>
         </div>
@@ -502,15 +624,12 @@ function renderChecklist(actions) {
     })
     .join('');
 
-  // Bind checkbox events
-  actionCards.querySelectorAll('.action-card').forEach((card) => {
+  actionCardsGrid.querySelectorAll('.action-card').forEach((card) => {
     const actionId = card.dataset.actionId;
     const checkbox = card.querySelector('.action-checkbox');
 
     const toggle = (e) => {
-      if (e.target !== checkbox) {
-        checkbox.checked = !checkbox.checked;
-      }
+      if (e.target !== checkbox) checkbox.checked = !checkbox.checked;
       if (checkbox.checked) {
         completedActionIds.add(actionId);
         card.classList.add('checked');
@@ -530,21 +649,78 @@ function renderChecklist(actions) {
 function updateChecklistProgress(total) {
   const completed = completedActionIds.size;
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-  checklistProgressText.textContent = `${completed} of ${total} Completed (${pct}%)`;
+  checklistProgressText.textContent = `${completed} of ${total} Actions Verified (${pct}%)`;
   checklistProgressFill.style.width = `${pct}%`;
 }
+
+filterPills.forEach((pill) => {
+  pill.addEventListener('click', () => {
+    filterPills.forEach((p) => p.classList.remove('active'));
+    pill.classList.add('active');
+    activeCategoryFilter = pill.dataset.category;
+    if (currentAssessment) renderChecklist(currentAssessment.actions);
+  });
+});
 
 resetChecklistBtn.addEventListener('click', () => {
   completedActionIds.clear();
   if (currentAssessment) {
     renderChecklist(currentAssessment.actions);
-    showToast('Checklist progress reset.', '🔄');
+    showToast('Checklist reset.', '🔄');
   }
+});
+
+// Go-Bag Manager
+function renderGoBag() {
+  gobagList.innerHTML = GO_BAG_ITEMS
+    .map((item) => {
+      const isPacked = packedGoBagIds.has(item.id);
+      return `
+      <div class="gobag-item ${isPacked ? 'checked' : ''}" data-bag-id="${item.id}">
+        <input type="checkbox" class="action-checkbox" ${isPacked ? 'checked' : ''} aria-label="Mark packed" />
+        <span>${item.icon}</span>
+        <div style="flex:1;">
+          <strong>${item.title}</strong>
+        </div>
+      </div>`;
+    })
+    .join('');
+
+  gobagList.querySelectorAll('.gobag-item').forEach((row) => {
+    const bagId = row.dataset.bagId;
+    const checkbox = row.querySelector('.action-checkbox');
+
+    row.addEventListener('click', (e) => {
+      if (e.target !== checkbox) checkbox.checked = !checkbox.checked;
+      if (checkbox.checked) {
+        packedGoBagIds.add(bagId);
+        row.classList.add('checked');
+      } else {
+        packedGoBagIds.delete(bagId);
+        row.classList.remove('checked');
+      }
+      localStorage.setItem(STORAGE_KEY_GOBAG, JSON.stringify([...packedGoBagIds]));
+      updateGoBagProgress();
+    });
+  });
+
+  updateGoBagProgress();
+}
+
+function updateGoBagProgress() {
+  gobagCountText.textContent = `${packedGoBagIds.size} of ${GO_BAG_ITEMS.length} items packed`;
+}
+
+resetGobagBtn.addEventListener('click', () => {
+  packedGoBagIds.clear();
+  localStorage.removeItem(STORAGE_KEY_GOBAG);
+  renderGoBag();
+  showToast('Go-Bag checklist reset.', '🔄');
 });
 
 // ── What-If Simulation Sandbox ─────────────────────────────────────────
 
-$$('.sim-pill').forEach((btn) => {
+$$('.sim-action-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     const simType = btn.dataset.sim;
     let t = parseFloat(tempInput.value) || 30;
@@ -578,31 +754,31 @@ $$('.sim-pill').forEach((btn) => {
   });
 });
 
-// ── Share & Export Tools ───────────────────────────────────────────────
+// ── Share & Export Utilities ───────────────────────────────────────────
 
 copyAlertBtn.addEventListener('click', async () => {
   if (!currentAssessment) return;
   const a = currentAssessment;
-  const actionsList = a.actions.map((act) => `• ${act.icon} ${act.title}: ${act.body}`).join('\n');
+  const actionsList = a.actions.map((act) => `• ${act.icon} [${act.category}] ${act.title}: ${act.body}`).join('\n');
 
   const alertText =
-`🚨 ECOTRACK AI — NEIGHBOURHOOD READINESS ALERT
-📍 Municipality: ${a.city}
-⚠️ Readiness Status: ${a.overall.toUpperCase()} RISK (${a.overallScore}/4)
-🌡️ Thermal Stress (Heat Index): ${a.heat.heatIndex}°C
-🌧️ Precipitation Runoff: ${a.rain.effectiveRainfall}mm (Wind: ${a.inputs.wind} km/h)
+`🚨 ECOTRACK AI — NEIGHBOURHOOD READINESS BULLETIN
+📍 Location: ${a.city}
+⚠️ Status: ${a.overall.toUpperCase()} HAZARD (${a.overallScore}/4 Severity)
+🌡️ Thermal Load (Heat Index): ${a.heat.heatIndex}°C (Wet-Bulb: ${a.heat.wetBulb}°C)
+🌧️ Effective Runoff: ${a.rain.effectiveRainfall}mm (Wind Shear: ${a.inputs.wind} km/h)
 
-🛡️ RECOMMENDED NEIGHBOURHOOD ACTIONS:
+🛡️ IMMEDIATE SAFETY ACTIONS:
 ${actionsList}
 
-⚠️ Decision-support advisory only. Follow instructions from local SDMA/IMD.
+⚠️ Decision-support advisory only. Follow official IMD and local SDMA instructions.
 Built for Environmental Hacks 2026.`;
 
   try {
     await navigator.clipboard.writeText(alertText);
-    showToast('Alert text copied to clipboard! Ready to share on WhatsApp.', '📋');
+    showToast('Alert bulletin copied! Ready to share on WhatsApp.', '📋');
   } catch (e) {
-    showToast('Failed to copy. Please manually copy the results.', '⚠️');
+    showToast('Copy failed. Please manually copy the results.', '⚠️');
   }
 });
 
@@ -616,7 +792,25 @@ exportJsonBtn.addEventListener('click', () => {
   showToast('Assessment report exported as JSON.', '📥');
 });
 
-// ── History Management ─────────────────────────────────────────────────
+// Emergency Number Copy Buttons
+btnCopyNums.forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    const num = btn.dataset.num;
+    await navigator.clipboard.writeText(num);
+    showToast(`Copied emergency helpline: ${num}`, '📞');
+  });
+});
+
+// Terminal Command Copy
+btnCopyCmds.forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    const cmd = btn.dataset.cmd;
+    await navigator.clipboard.writeText(cmd);
+    showToast(`Command copied: ${cmd}`, '💻');
+  });
+});
+
+// ── History & Analytics Manager ────────────────────────────────────────
 
 function getHistory() {
   try {
@@ -638,44 +832,68 @@ function saveToHistory(assessment) {
     heatIndex: assessment.heat.heatIndex,
     effectiveRainfall: assessment.rain.effectiveRainfall
   });
-  if (history.length > 5) history.length = 5;
+  if (history.length > 25) history.length = 25;
   localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
 }
 
 function renderHistory() {
   const history = getHistory();
+  navHistoryCount.textContent = history.length;
+  kpiTotalScans.textContent = history.length;
+
   if (history.length === 0) {
-    historyList.innerHTML = '<p class="history-empty">No checks recorded yet. Fill conditions above and click "Analyze Neighbourhood Risk".</p>';
+    kpiPeakHeat.textContent = '0.0';
+    kpiMaxRain.textContent = '0.0';
+    kpiDominantRisk.textContent = 'None';
+    historyTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">No assessments recorded yet. Run a risk assessment in Cockpit.</td></tr>`;
     return;
   }
 
-  historyList.innerHTML = history
+  // Calculate KPIs
+  let peakHeat = 0;
+  let maxRain = 0;
+  const riskCounts = { Low: 0, Moderate: 0, High: 0, Severe: 0 };
+
+  history.forEach((h) => {
+    if (h.heatIndex > peakHeat) peakHeat = h.heatIndex;
+    if (h.effectiveRainfall > maxRain) maxRain = h.effectiveRainfall;
+    if (riskCounts[h.overall] !== undefined) riskCounts[h.overall]++;
+  });
+
+  kpiPeakHeat.textContent = peakHeat.toFixed(1);
+  kpiMaxRain.textContent = maxRain.toFixed(1);
+
+  const dominant = Object.keys(riskCounts).reduce((a, b) => riskCounts[a] >= riskCounts[b] ? a : b);
+  kpiDominantRisk.textContent = dominant;
+
+  // Render Table Rows
+  historyTableBody.innerHTML = history
     .map((h) => {
-      const p = LEVEL_PALETTES[h.overall] || LEVEL_PALETTES.Low;
-      const timeStr = new Date(h.timestamp).toLocaleString();
+      const dateStr = new Date(h.timestamp).toLocaleString();
       return `
-      <div class="history-item">
-        <div class="history-item-left">
-          <div class="history-badge" style="background:${p.bg};color:${p.fg}">
-            ${p.emoji} ${h.overall}
-          </div>
-          <div class="history-details">
-            <strong>${h.city}</strong> — ${h.inputs.temperature}°C, ${h.inputs.humidity}%, ${h.inputs.rainfall}mm, ${h.inputs.wind}km/h
-            <span class="history-time">${timeStr}</span>
-          </div>
-        </div>
-        <button class="history-reload-btn" data-hist-id="${h.id}">Reload</button>
-      </div>`;
+      <tr>
+        <td><strong>${dateStr}</strong></td>
+        <td>${h.city}</td>
+        <td><span class="risk-badge badge-${h.overall.toLowerCase().slice(0, 3)}">${h.overall} (${h.overallScore}/4)</span></td>
+        <td>${h.inputs.temperature}°C / ${h.inputs.humidity}%</td>
+        <td>${h.inputs.rainfall}mm / ${h.inputs.wind} km/h</td>
+        <td><strong>${h.heatIndex}°C</strong></td>
+        <td><strong>${h.effectiveRainfall}mm</strong></td>
+        <td>
+          <button class="btn-mini-replay" data-hist-id="${h.id}">Replay</button>
+        </td>
+      </tr>`;
     })
     .join('');
 
-  historyList.querySelectorAll('.history-reload-btn').forEach((btn) => {
+  historyTableBody.querySelectorAll('.btn-mini-replay').forEach((btn) => {
     btn.addEventListener('click', () => {
       const histId = Number(btn.dataset.histId);
       const item = history.find((x) => x.id === histId);
       if (item) {
         setFormValues(item.inputs.temperature, item.inputs.humidity, item.inputs.rainfall, item.inputs.wind);
-        showToast(`Reloaded check for ${item.city}`, '🔄');
+        showToast(`Reloaded assessment for ${item.city}`, '🔄');
+        switchPage('page-overview');
         triggerRiskCheck();
       }
     });
@@ -718,14 +936,18 @@ exportHistoryCsvBtn.addEventListener('click', () => {
 // ── Application Initialization ─────────────────────────────────────────
 
 initTheme();
+renderGoBag();
 renderHistory();
 
-// Set initial defaults from selected city
+// Set default values from selected city
 const initialCity = citySelect.value;
 if (SAMPLE_CONDITIONS[initialCity]) {
   const d = SAMPLE_CONDITIONS[initialCity];
   setFormValues(d.temperature, d.humidity, d.rainfall, d.wind);
 }
 
-// Check initial SAM connection quietly
+// Initial calculation on load
+triggerRiskCheck();
+
+// Ping SAM in background
 pingSamApi(false);
