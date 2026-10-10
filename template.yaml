@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: EcoTrack AI — Serverless risk assessment API (local SAM)
+
+Globals:
+  Function:
+    Timeout: 10
+    Runtime: nodejs20.x
+    Architectures:
+      - x86_64
+
+Resources:
+  RiskFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: risk.handler
+      CodeUri: lambda/
+      Description: Calculates heat and rain risk from weather inputs
+      Events:
+        RiskApi:
+          Type: Api
+          Properties:
+            Path: /assess
+            Method: post
+        RiskOptions:
+          Type: Api
+          Properties:
+            Path: /assess
+            Method: options
+
+Outputs:
+  RiskApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/assess/'

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoTrack AI — Heat & Rain Readiness</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-brand">
+          <span class="header-icon">🌍</span>
+          <h1>EcoTrack <span class="highlight">AI</span></h1>
+        </div>
+        <p class="header-tagline">Neighbourhood Heat &amp; Rain Readiness</p>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main">
+        <!-- Input Section -->
+        <section class="card input-card">
+          <h2>📍 Check Your Local Conditions</h2>
+
+          <div class="form-group">
+            <label for="city">City</label>
+            <select id="city">
+              <option value="delhi">Delhi</option>
+              <option value="mumbai">Mumbai</option>
+              <option value="chennai">Chennai</option>
+              <option value="bengaluru">Bengaluru</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="temperature">Temperature (°C)</label>
+              <input type="number" id="temperature" placeholder="e.g. 38" min="0" max="60" step="0.1" />
+            </div>
+            <div class="form-group">
+              <label for="humidity">Humidity (%)</label>
+              <input type="number" id="humidity" placeholder="e.g. 72" min="0" max="100" step="1" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="rainfall">Expected Rainfall (mm)</label>
+              <input type="number" id="rainfall" placeholder="e.g. 45" min="0" max="500" step="0.1" />
+            </div>
+            <div class="form-group">
+              <label for="wind">Wind Speed (km/h)</label>
+              <input type="number" id="wind" placeholder="e.g. 25" min="0" max="200" step="0.1" />
+            </div>
+          </div>
+
+          <button id="check-btn" class="btn-primary">⚡ Check My Risk</button>
+
+          <div class="sample-hint">
+            <button id="load-sample" class="btn-link">Load sample conditions for selected city →</button>
+          </div>
+        </section>
+
+        <!-- Result Section (hidden initially) -->
+        <section id="result-section" class="card result-card hidden">
+          <div class="result-header">
+            <div id="result-badge" class="risk-badge">—</div>
+            <h2 id="result-title">Risk Assessment</h2>
+          </div>
+
+          <div class="scores-row">
+            <div class="score-box">
+              <span class="score-label">🌡️ Heat Risk</span>
+              <span id="heat-score" class="score-value">—</span>
+              <div class="score-bar"><div id="heat-bar" class="score-fill heat-fill"></div></div>
+            </div>
+            <div class="score-box">
+              <span class="score-label">🌧️ Rain Risk</span>
+              <span id="rain-score" class="score-value">—</span>
+              <div class="score-bar"><div id="rain-bar" class="score-fill rain-fill"></div></div>
+            </div>
+          </div>
+
+          <div id="calc-explanation" class="calc-explanation"></div>
+
+          <h3>🛡️ Recommended Actions</h3>
+          <div id="action-cards" class="action-cards"></div>
+        </section>
+
+        <!-- History Section -->
+        <section class="card history-card">
+          <div class="history-header">
+            <h2>📋 Recent Checks</h2>
+            <button id="clear-history" class="btn-link">Clear</button>
+          </div>
+          <div id="history-list" class="history-list">
+            <p class="history-empty">No checks yet. Enter conditions above and click "Check My Risk".</p>
+          </div>
+        </section>
+      </main>
+
+      <!-- Disclaimer -->
+      <footer class="footer">
+        <p class="disclaimer">⚠️ <strong>This is a decision-support tool, not an official weather warning.</strong> Always follow guidance from your local meteorological department and disaster management authority.</p>
+        <p class="credit">Built for Environmental Hacks 2026 · Powered by AWS SAM</p>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
