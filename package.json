@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lambda:local": "node lambda/local-runner.mjs",
+    "sam:build": "sam build",
+    "sam:start": "sam local start-api"
   },
   "devDependencies": {
     "vite": "^6.3.5"
