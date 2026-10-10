@@ -5,6 +5,13 @@
 **Built for [Environmental Hacks 2026](https://www.wemakedevs.org/aws/env) · Track: Heat & Water**  
 *Requirement: Utilizes an AWS open-source tool (AWS SAM CLI) running locally for ₹0 cloud cost.*
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success?style=for-the-badge&logo=github)](https://abhas-blitz.github.io/EcoTrack-AI-Environmental-Hacks/)
+[![AWS SAM](https://img.shields.io/badge/Powered%20By-AWS%20SAM%20CLI-FF9900?style=for-the-badge&logo=amazon-aws)](https://docs.aws.amazon.com/serverless-application-model/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+
+🔗 **Live Web Application:** [https://abhas-blitz.github.io/EcoTrack-AI-Environmental-Hacks/](https://abhas-blitz.github.io/EcoTrack-AI-Environmental-Hacks/)  
+📦 **Public Repository:** [https://github.com/Abhas-blitz/EcoTrack-AI-Environmental-Hacks](https://github.com/Abhas-blitz/EcoTrack-AI-Environmental-Hacks)
+
 ---
 
 ## ✨ Key Features & Capabilities
